@@ -92,9 +92,10 @@ RTA mode is enabled when "RTA" is present in the category name for the splits. I
 Reset: If star count decreases, the timer is reset.
 
 Additional start conditions:
-	- Star select screen is displayed (either through painting entry or usamune ROM menu)
-	- Stage is exited (fade-out)
-	- A key door is touched.
+
+- Star select screen is displayed (either through painting entry or usamune ROM menu)
+- Stage is exited (fade-out)
+- A key door is touched.
 	
 Splitting conditions (incl. last split) are identical.
 
@@ -108,9 +109,10 @@ This relies heavily on Usamune providing the right configuration for this segmen
 to end of the game.
 
 To reset:
-  - Enter HMC stage.
-  - Under "MENU > DATA > For 16 Star" select "15". If resetting, flip between a lower setting and "15".
-  - Do a quick star in HMC to exit stage, timer will start on exit.
+
+- Enter HMC stage.
+- Under "MENU > DATA > For 16 Star" select "15". If resetting, flip between a lower setting and "15".
+- Do a quick star in HMC to exit stage, timer will start on exit.
 
 ### Segment RTA (Door)
 
@@ -119,9 +121,10 @@ To reset:
 Like previously, Usamune ROM needs to provide configuration you need. In this case we will do 70 upstairs RTA from door touch.
 
 To reset:
-  - Exit to lobby.
-  - Under "MENU > DATA > For 70 Star" select "34". If resetting, flip between a lower setting and "34".
-  - Touch the upstairs door, timer will star with door unlocking animation.
+
+- Exit to lobby.
+- Under "MENU > DATA > For 70 Star" select "34". If resetting, flip between a lower setting and "34".
+- Touch the upstairs door, timer will star with door unlocking animation.
 
 ### Single Stage RTA
 
