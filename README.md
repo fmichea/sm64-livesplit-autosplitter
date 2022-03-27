@@ -7,22 +7,22 @@ and could contain issues, but if you let me know I'll try to fix them.
 It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me, so I decided
 to write my own. Still this would not exist without them, so please check them out:
 
-  - https://github.com/ColinT/banana-split/blob/master/script.asl
-  - https://github.com/andysandford/sm64-livesplit-autosplitter
-  - https://github.com/aglab2/LiveSplitAutoSplitters/blob/master/LiveSplit.SuperMario64.asl
+- https://github.com/ColinT/banana-split/blob/master/script.asl
+- https://github.com/andysandford/sm64-livesplit-autosplitter
+- https://github.com/aglab2/LiveSplitAutoSplitters/blob/master/LiveSplit.SuperMario64.asl
 
 You are welcome to try this splitter as well, however there might be bugs that slipped in. If you report those, I will try to address
 them. I also welcome feature requests if you have any.
 
 Here is a list of features of this auto splitter:
  
-	- **Zero Configuration**: all splitting defaults should be sane for the customs that SM64 community uses. Shouldn't need to configure anything.
-	- **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically. Setting version in configuration is not required.
-	- **Automatic Split Configuration**: the script uses the name of the splits for automatic detection. See Split Name Format, it
-		follows the community convention for splitting the game.
-	- **RTA Mode**: automated RTA resetting/splitting to be used with usamune ROM.
-	- **Miscellaneous Features/Fixes**:
-	    - Resetting after game end resets timer correctly by default.
+- **Zero Configuration**: all splitting defaults should be sane for the customs that SM64 community uses. Shouldn't need to configure anything.
+- **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically. Setting version in configuration is not required.
+- **Automatic Split Configuration**: the script uses the name of the splits for automatic detection. See Split Name Format, it
+	follows the community convention for splitting the game.
+- **RTA Mode**: automated RTA resetting/splitting to be used with usamune ROM.
+- **Miscellaneous Features/Fixes**:
+    - Resetting after game end resets timer correctly by default.
 
 # Instalation
 
@@ -40,9 +40,9 @@ Here is a list of features of this auto splitter:
 
 There are 3 basic types of splits that can be defined:
 
-   - Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a few conditions.
-   - Bowser splits: split on bowser only after the key has been grabbed.
-   - Castle movement split: when measuring time between two stages (eg. Lakitu Skip, Mips Clip, ...)
+- Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a few conditions.
+- Bowser splits: split on bowser only after the key has been grabbed.
+- Castle movement split: when measuring time between two stages (eg. Lakitu Skip, Mips Clip, ...)
 
 ## Format Explained
 
@@ -52,9 +52,9 @@ This splits after a certain number of stars has been collected. To specify a num
 
 The splitting moment depends on a few conditions. Once the correct number of stars has been grabbed:
 
-  - If the star grab animation with stage exit is happening, the split will happen on fadeout.
-  - If the star grab animation does not exit stage (100 coins star), the split happens immediately.
-  - If the star is grabbed in the castle, not a stage, the split happens when entering the next stage (fade in).
+- If the star grab animation with stage exit is happening, the split will happen on fadeout.
+- If the star grab animation does not exit stage (100 coins star), the split happens immediately.
+- If the star is grabbed in the castle, not a stage, the split happens when entering the next stage (fade in).
 
 Note: If using subsplit, the first star requirement is used on the split with both subsplit category and split. 
 
