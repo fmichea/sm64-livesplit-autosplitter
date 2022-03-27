@@ -109,10 +109,10 @@ startup {
 	};
 
 	Action<dynamic, int> resetVarsDataForSplitChange = delegate(dynamic varsD, int lastSplitIndex) {
-		vars.data.isSplittingImmediately = false;
-		vars.data.isSplittingOnLevelChange = false;
-		vars.data.starRequirement = -1;
-		vars.data.lastSplitIndex = lastSplitIndex;
+		varsD.data.isSplittingImmediately = false;
+		varsD.data.isSplittingOnLevelChange = false;
+		varsD.data.starRequirement = -1;
+		varsD.data.lastSplitIndex = lastSplitIndex;
 	};
 
 	vars.data = initVarsData();
@@ -374,6 +374,7 @@ startup {
 		// that does not fadeout (but star count is correct), we split immediately, unless we are in castle where we split
 		// on fade in (eg. toad star).
 		addLevelChangeSplittingCondition(
+			!varsD.data.isDoorTouchSplit &&
 			!varsD.data.isBowserSplit &&
 			animation_old != animation_current &&
 			starCount_current == varsD.data.starRequirement &&
@@ -385,6 +386,7 @@ startup {
 		);
 		
 		addImmediateSplittingCondition(
+			!varsD.data.isDoorTouchSplit &&
 			!varsD.data.isBowserSplit &&
 			animation_old != animation_current &&
 			animation_current == STAR_GRAB_ACTION_NO_EXIT &&
