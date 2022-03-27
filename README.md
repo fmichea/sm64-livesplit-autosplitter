@@ -66,10 +66,10 @@ the star was not collected before collecting the bowser key.
 
 ### Castle Movement Split
 
-This is any split that does not fit into the previous two categories. There can only be one castle movement split, because the split will happen when
-entering any stage in the castle. Splitting will happen on fade in to stage entry. Also to note, it is not possible to split on stage entry for the
-stage that was just left. Castle movement must be between two different stages. This allows re-entering the previous stage, using EXIT STAGE inside
-of pause menu to go back to castle lobby, then moving towards another stage.
+This is any split that does not fit into the previous two categories. There cannot be two castle movement splits in a row, because the split
+will happen when entering any stage in the castle. Splitting will happen on fade in to stage entry. Also to note, it is not possible to split
+on stage entry for the stage that was just left. Castle movement must be between two different stages. This allows re-entering the previous
+stage, using EXIT STAGE inside of pause menu to go back to castle lobby, then moving towards another stage.
 
 ### Examples
 
