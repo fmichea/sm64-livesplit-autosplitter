@@ -427,13 +427,14 @@ startup {
 			varsD.data.previousStage = stageIndex_current;
 		}
 
-		// We intend to split on level change.
-		if (varsD.data.isSplittingOnLevelChange && stageIndex_old != stageIndex_current) {
+		// Split but make sure to reset conditions to avoid infinite splitting.
+		if (varsD.data.isSplittingImmediately || (varsD.data.isSplittingOnLevelChange && stageIndex_old != stageIndex_current)) {
+			varsD.data.isSplittingImmediately = false;
+			varsD.data.isSplittingOnLevelChange = false;
 			return true;
 		}
-		
-		// We intend to split immediately.
-		return varsD.data.isSplittingImmediately;
+
+		return false;
 	};
 	
 	// Testing: unit testing is not available for these scripts, this is the best I can think of.
