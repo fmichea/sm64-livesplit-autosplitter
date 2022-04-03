@@ -621,7 +621,7 @@ startup {
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
 	settings.Add(DISABLE_RTA_MODE, false, "Disable stage RTA mode.", "generalSettings");
 
-    settings.Add("gameVersion", true, "Game Version (defaults to automatic detection, force version below)");
+    settings.Add("gameVersion", false, "Force Game Version (defaults to automatic detection, recommended)");
 	settings.Add(GAME_VERSION_JP, false, "JP", "gameVersion");
     settings.Add(GAME_VERSION_US, false, "US", "gameVersion");
 }
