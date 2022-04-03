@@ -4,7 +4,7 @@ sm64-livesplit-autosplitter.asl - Super Mario 64 Livesplit Auto-Splitter
 This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64. It isn't fully tested
 and could contain issues, but if you let me know I'll try to fix them.
 
-It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me, so I decided
+It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me*, so I decided
 to write my own. Still this would not exist without them, so please check them out:
 
 - https://github.com/ColinT/banana-split/blob/master/script.asl
@@ -17,7 +17,9 @@ them. I also welcome feature requests if you have any.
 Here is a list of features of this auto splitter:
  
 - **Zero Configuration**: all splitting defaults should be sane for the customs that SM64 community uses. Shouldn't need to configure anything.
-- **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically. Setting version in configuration is not required.
+- **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically.
+   - Supports both US and JP game versions.
+   - Setting version in configuration is not required (and even discouraged).
 - **Automatic Split Configuration**: the script uses the name of the splits for automatic detection. See Split Name Format, it
 	follows the community convention for splitting the game.
 - **RTA Mode**: automated RTA resetting/splitting to be used with usamune ROM.
@@ -142,3 +144,12 @@ To reset:
 - If painting entry is desired, get in position. Otherwise usamune ROM stage select can be used.
 - Under "MENU > DATA > For 0 Star", flip between OFF and DWEND. DWEND should be selected at the start of stage RTA. This resets all stars in stage.
 - Enter painting or select stage in menu, this will start the timer.
+
+**Footnotes:**
+
+* Among the issues I ran into in various recommended autosplitters:
+  - Too much configuration. Needs to be configured for each split file (category) differently.
+  - Does not support castle movement splits.
+  - Only support one game version.
+  - Issues with split undo not being possible, eg. on final star last split.
+  - Generally liked some features of each one, but couldn't quite use any 100%.
