@@ -1,8 +1,7 @@
 sm64-livesplit-autosplitter.asl - Super Mario 64 Livesplit Auto-Splitter
 ========================================================================
 
-This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64. Should work pretty well but if you find issues,
-let me know I'll try to fix them.
+This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64.
 
 It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me*, so I decided
 to write my own. Still this would not exist without them, so please check them out:
@@ -11,14 +10,15 @@ to write my own. Still this would not exist without them, so please check them o
 - https://github.com/andysandford/sm64-livesplit-autosplitter
 - https://github.com/aglab2/LiveSplitAutoSplitters/blob/master/LiveSplit.SuperMario64.asl
 
-You are welcome to try this splitter as well, however there might be bugs that slipped in. If you report those, I will try to address
-them. I also welcome feature requests if you have any.
+You are welcome to try this splitter as well, it has worked well for me so far, however there might be bugs that slipped in.
+If you report those, I will try to address them. I also welcome feature requests if you have any.
 
 Here is a list of features of this auto splitter:
  
 - **Zero Configuration**: all splitting defaults should be sane for the customs that SM64 community uses. Shouldn't need to configure anything.
 - **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically.
    - Supports both US and JP game versions.
+   - Game ROM version can be switched at any time. No LiveSplit restart required.
    - Setting version in configuration is not required (and even discouraged).
 - **Automatic Split Configuration**: the script uses the name of the splits for automatic detection. See Split Name Format, it
 	follows the community convention for splitting the game.
