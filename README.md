@@ -56,7 +56,8 @@ This splits after a certain number of stars has been collected. To specify a num
 The splitting moment depends on a few conditions. Once the correct number of stars has been grabbed:
 
 - If the star grab animation with stage exit is happening, the split will happen on fadeout.
-- If the star grab animation does not exit stage (100 coins star), the split happens immediately.
+- If the star grab animation does not exit stage (100 coins star), the split happens immediately. Exception: For bowser reds, split happens
+  on pipe entry by default (settings can change this).
 - If the star is grabbed in the castle, not a stage, the split happens when entering the next stage (fade in).
 
 Note: If using subsplit, the first star requirement is used on the split with both subsplit category and split. 
@@ -158,4 +159,5 @@ To reset:
   - Does not support castle movement splits.
   - Only support one game version.
   - Issues with split undo not being possible, eg. on final star last split.
+  - Misses (reset, ...) due to refresh rate.
   - Generally liked some features of each one, but couldn't quite use any 100%.

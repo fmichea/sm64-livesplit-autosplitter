@@ -1,3 +1,5 @@
+// Version: 0.0.1
+
 state("Project64") {
 	// This looks like it always has value vars.consts.DEBUG_FUNCTION_VALUE in the correct ROM.
 	// Used to determine which ROM is loaded in PJ64 automatically.
@@ -25,14 +27,22 @@ state("Project64") {
 
 startup {
 	// Arrays used to quickly check which stage we are in.
+	bool[] BOWSER_FIGHT_STAGE_INDEXES = new bool[0x100];
+	BOWSER_FIGHT_STAGE_INDEXES[30] = true; // BOWSER 1 FIGHT STAGE
+	BOWSER_FIGHT_STAGE_INDEXES[33] = true; // BOWSER 2 FIGHT STAGE
+	BOWSER_FIGHT_STAGE_INDEXES[34] = true; // BOWSER 3 FIGHT STAGE
+
+	byte DDD_STAGE_INDEX = 23;
+	byte BITFS_STAGE_INDEX = 19;
+
 	bool[] BOWSER_STAGE_INDEXES = new bool[0x100];
-	BOWSER_STAGE_INDEXES[30] = true; // BOWSER 1 FIGHT STAGE
-	BOWSER_STAGE_INDEXES[33] = true; // BOWSER 2 FIGHT STAGE
-	BOWSER_STAGE_INDEXES[34] = true; // BOWSER 3 FIGHT STAGE
+	BOWSER_STAGE_INDEXES[17] = true; // BITDW
+	BOWSER_STAGE_INDEXES[BITFS_STAGE_INDEX] = true; // BITFS
+	BOWSER_STAGE_INDEXES[21] = true; // BITS
 
 	bool[] STAGE_INDEXES = new bool[0x100];
 	STAGE_INDEXES[17] = true; // BITDW
-	STAGE_INDEXES[19] = true; // BITFS
+	STAGE_INDEXES[BITFS_STAGE_INDEX] = true; // BITFS
 	STAGE_INDEXES[21] = true; // BITS
 	STAGE_INDEXES[18] = true; // VUCTM
 	STAGE_INDEXES[31] = true; // WMOTR
@@ -45,7 +55,7 @@ startup {
 	STAGE_INDEXES[7] = true;  // HMC
 	STAGE_INDEXES[22] = true; // LLL
 	STAGE_INDEXES[8] = true;  // SSL
-	STAGE_INDEXES[23] = true; // DDD
+	STAGE_INDEXES[DDD_STAGE_INDEX] = true; // DDD
 	STAGE_INDEXES[10] = true; // SL
 	STAGE_INDEXES[11] = true; // WDW
 	STAGE_INDEXES[36] = true; // TTM
@@ -65,6 +75,7 @@ startup {
 	string LAUNCH_ON_START = "launchOnStart";
 	string DISABLE_RESET_AFTER_END = "disableResetAfterEnd";
 	string DISABLE_RTA_MODE = "disableRTAMode";
+	string DISABLE_BOWSER_REDS_DELAYED_SPLIT = "disableBowserRedsDelayedSplit";
 
 	// Constant values used within the code.
 	ushort STAR_GRAB_ACTION = 4866;
@@ -132,6 +143,7 @@ startup {
 		settingsD.forceUSGameVersion = false;
 		settingsD.disableResetAfterEnd = false;
 		settingsD.disableRTAMode = false;
+		settingsD.disableBowserRedsDelayedSplit = false;
 		
 		return settingsD;
 	};
@@ -176,7 +188,7 @@ startup {
 			stageIndex_old != stageIndex_current &&
 			(
 				(STAGE_INDEXES[stageIndex_old] && CASTLE_INDEXES[stageIndex_current]) ||
-				(STAGE_INDEXES[stageIndex_old] && BOWSER_STAGE_INDEXES[stageIndex_current])
+				(STAGE_INDEXES[stageIndex_old] && BOWSER_FIGHT_STAGE_INDEXES[stageIndex_current])
 			)
 		);
 	};
@@ -234,6 +246,7 @@ startup {
 		varsD.settings.forceUSGameVersion = settingsD[GAME_VERSION_US];
 		varsD.settings.disableResetAfterEnd = settingsD[DISABLE_RESET_AFTER_END];
 		varsD.settings.disableRTAMode = settingsD[DISABLE_RTA_MODE];
+		varsD.settings.disableBowserRedsDelayedSplit = settingsD[DISABLE_BOWSER_REDS_DELAYED_SPLIT];
 		
 		// Call inner update logic.
 		return updateRunConditionInner(varsD, oldD, currentD);
@@ -367,11 +380,21 @@ startup {
 		short starCount_current = getStarCount(varsD, currentD);
 		
 		bool isInCastle = CASTLE_INDEXES[stageIndex_current];
-		bool isInStage = STAGE_INDEXES[stageIndex_current];
 		bool isInBowserStage = BOWSER_STAGE_INDEXES[stageIndex_current];
+		bool isInStage = STAGE_INDEXES[stageIndex_current];
+		bool isInBowserFightStage = BOWSER_FIGHT_STAGE_INDEXES[stageIndex_current];
 
+		bool isNoExitStarGrabSplitDelayed = isInCastle || (isInBowserStage && !varsD.settings.disableBowserRedsDelayedSplit);
 		bool optionalStarReqDone = (varsD.data.starRequirement == -1 || starCount_current == varsD.data.starRequirement);
-		
+
+		// For the purpose of castle movement, we don't split on re-entering the same stage. Since DDD and BITFS entry are
+		// pretty much the same, we count those two as the same stage as well.
+		bool isSameStageEntry = (
+			varsD.data.previousStage == stageIndex_current ||
+			(varsD.data.previousStage == DDD_STAGE_INDEX && stageIndex_current == BITFS_STAGE_INDEX) ||
+			(varsD.data.previousStage == BITFS_STAGE_INDEX && stageIndex_current == DDD_STAGE_INDEX)
+		);
+
 		// When getting the required number of stars in a non-bowser stage, we split on fadeout. If we are getting a star
 		// that does not fadeout (but star count is correct), we split immediately, unless we are in castle where we split
 		// on fade in (eg. toad star).
@@ -383,7 +406,7 @@ startup {
 			(
 				animation_current == STAR_GRAB_ACTION ||
 				animation_current == STAR_GRAB_ACTION_SWIMMING ||
-				(animation_current == STAR_GRAB_ACTION_NO_EXIT && isInCastle)
+				(animation_current == STAR_GRAB_ACTION_NO_EXIT && isNoExitStarGrabSplitDelayed)
 			)		
 		);
 		
@@ -392,7 +415,7 @@ startup {
 			!varsD.data.isBowserSplit &&
 			animation_old != animation_current &&
 			animation_current == STAR_GRAB_ACTION_NO_EXIT &&
-			!isInCastle &&
+			!isNoExitStarGrabSplitDelayed &&
 			starCount_current == varsD.data.starRequirement
 		);
 		
@@ -401,7 +424,7 @@ startup {
 			varsD.data.isBowserSplit &&
 			animation_old != animation_current &&
 			animation_current == STAR_GRAB_ACTION &&
-			isInBowserStage &&
+			isInBowserFightStage &&
 			optionalStarReqDone
 		);
 		
@@ -409,8 +432,8 @@ startup {
 		addImmediateSplittingCondition(
 			varsD.data.isCastleMovementSplit &&
 			stageIndex_old != stageIndex_current &&
-			varsD.data.previousStage != stageIndex_current &&
-			isInStage
+			!isSameStageEntry &&
+			(isInStage || isInBowserFightStage)
 		);
 			
 		// This is the last split and we are getting the last star, split immediately.
@@ -624,6 +647,7 @@ startup {
 	settings.Add(LAUNCH_ON_START, false, "Start on game launch instead of logo first frame (logo is more consistent, at 1.33s offset)", "generalSettings");
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
 	settings.Add(DISABLE_RTA_MODE, false, "Disable stage RTA mode.", "generalSettings");
+	settings.Add(DISABLE_BOWSER_REDS_DELAYED_SPLIT, false, "Disable bowser reds delayed split (default: split on pipe entry)", "generalSettings");
 
     settings.Add("gameVersion", false, "Force Game Version (defaults to automatic detection, recommended)");
 	settings.Add(GAME_VERSION_JP, false, "JP", "gameVersion");
