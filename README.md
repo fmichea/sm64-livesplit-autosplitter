@@ -40,10 +40,11 @@ Here is a list of features of this auto splitter:
 
 # Split Name Format
 
-There are 3 basic types of splits that can be defined:
+There are 4 basic types of splits that can be defined:
 
 - Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a few conditions.
 - Bowser splits: split on bowser only after the key has been grabbed.
+- Door split: split when touching either the basement door or the upstairs door.
 - Castle movement split: when measuring time between two stages (eg. Lakitu Skip, Mips Clip, ...)
 
 ## Format Explained
@@ -65,6 +66,11 @@ Note: If using subsplit, the first star requirement is used on the split with bo
 To be considered a bowser split, the split name must contain "bowser" or "key" (in any case). This will only split when exiting the bowser
 fight with the key. A star requirement may be added to these split. It does not change the split moment, however does prevent split if
 the star was not collected before collecting the bowser key.
+
+### Door Split
+
+To be considered a door split, the split name must contain either "basement" or "upstairs" in its name. This will split only when the door
+unlocking animation happens. Like bowser, a star requirement may be added and will prevent splitting if star have not all been collected.
 
 ### Castle Movement Split
 

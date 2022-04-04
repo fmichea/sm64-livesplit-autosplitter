@@ -369,6 +369,8 @@ startup {
 		bool isInCastle = CASTLE_INDEXES[stageIndex_current];
 		bool isInStage = STAGE_INDEXES[stageIndex_current];
 		bool isInBowserStage = BOWSER_STAGE_INDEXES[stageIndex_current];
+
+		bool optionalStarReqDone = (varsD.data.starRequirement == -1 || starCount_current == varsD.data.starRequirement);
 		
 		// When getting the required number of stars in a non-bowser stage, we split on fadeout. If we are getting a star
 		// that does not fadeout (but star count is correct), we split immediately, unless we are in castle where we split
@@ -399,7 +401,8 @@ startup {
 			varsD.data.isBowserSplit &&
 			animation_old != animation_current &&
 			animation_current == STAR_GRAB_ACTION &&
-			isInBowserStage
+			isInBowserStage &&
+			optionalStarReqDone
 		);
 		
 		// When we are doing castle movement split and we enter a stage.
@@ -421,7 +424,8 @@ startup {
 		addImmediateSplittingCondition(
 			varsD.data.isDoorTouchSplit &&
 			animation_old != animation_current &&
-			animation_current == KEY_DOOR_TOUCH_ACTION
+			animation_current == KEY_DOOR_TOUCH_ACTION &&
+			optionalStarReqDone
 		);
 
 		// Save stage id of last stage that was entered for castle movement condition.
