@@ -1,4 +1,4 @@
-// Version: 0.0.1
+// Version: 0.0.2
 
 state("Project64") {
 	// This looks like it always has value vars.consts.DEBUG_FUNCTION_VALUE in the correct ROM.
@@ -299,6 +299,10 @@ startup {
 		return false;
 	};
 
+	Action<dynamic> onResetRunCondition = delegate(dynamic varsD) {
+		varsD.data.previousStage = 0;
+	};
+
 	Func<dynamic, dynamic, dynamic, bool> resetRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
@@ -320,7 +324,7 @@ startup {
 		);
 
 		if (isResetGame || isResetRTA) {
-			varsD.data.previousStage = 0;
+			onResetRunCondition(varsD);
 			return true;
 		}
 
@@ -634,6 +638,7 @@ startup {
 	// Functions to be used in the various right places.
 	vars.functions = new ExpandoObject();
 	vars.functions.startRunCondition = startRunCondition;
+	vars.functions.onResetRunCondition = onResetRunCondition;
 	vars.functions.resetRunCondition = resetRunCondition;
 	vars.functions.splitRunCondition = splitRunCondition;
 	vars.functions.updateRunCondition = updateRunCondition;
@@ -660,6 +665,10 @@ start {
 
 reset {
 	return vars.functions.resetRunCondition(vars, old, current);
+}
+
+onReset {
+	vars.functions.onResetRunCondition(vars);
 }
 
 split {
