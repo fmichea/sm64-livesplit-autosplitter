@@ -26,7 +26,7 @@ Here is a list of features of this auto splitter:
 - **Miscellaneous Features/Fixes**:
     - Resetting after game end resets timer correctly by default.
 
-# Instalation
+# Installation
 
 - Download the ASL script on your computer.
 - Open Livesplit, select your SM64 layout, right click -> Edit Layout.
@@ -43,9 +43,15 @@ Here is a list of features of this auto splitter:
 There are 4 basic types of splits that can be defined:
 
 - Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a few conditions.
+    - "HMC (15)"
 - Bowser splits: split on bowser only after the key has been grabbed.
+    - "Bowser 3"
+    - "Key 1 (9)"
 - Door split: split when touching either the basement door or the upstairs door.
-- Castle movement split: when measuring time between two stages (eg. Lakitu Skip, Mips Clip, ...)
+    - "Upstairs (74)"
+- Castle movement split: when measuring time between two stages
+    - "Lakitu Skip"
+    - "Mips"
 
 ## Format Explained
 
@@ -120,7 +126,7 @@ to end of the game.
 To reset:
 
 - Enter HMC stage.
-- Under "MENU > DATA > For 16 Star" select "15". If resetting, flip between a lower setting and "15".
+- Under "MENU > DATA > For 16 Star" select "15". To reset your splits, flip between a "9" and "15".
 - Do a quick star in HMC to exit stage, timer will start on exit.
 
 ### Segment RTA (Door)
@@ -132,7 +138,7 @@ Like previously, Usamune ROM needs to provide configuration you need. In this ca
 To reset:
 
 - Exit to lobby.
-- Under "MENU > DATA > For 70 Star" select "34". If resetting, flip between a lower setting and "34".
+- Under "MENU > DATA > For 70 Star" select "34". To reset your splits, flip between a "OFF" and "34".
 - Touch the upstairs door, timer will star with door unlocking animation.
 
 ### Single Stage RTA
