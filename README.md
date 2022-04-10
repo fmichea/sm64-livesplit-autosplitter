@@ -48,7 +48,7 @@ There are 4 basic types of splits that can be defined:
     - "Bowser 3"
     - "Key 1 (9)"
 - Door split: split when touching either the basement door or the upstairs door.
-    - "Upstairs (74)"
+    - "Upstairs \[74\]"
 - Castle movement split: when measuring time between two stages
     - "Lakitu Skip"
     - "Mips"
@@ -126,7 +126,7 @@ to end of the game.
 To reset:
 
 - Enter HMC stage.
-- Under "MENU > DATA > For 16 Star" select "15". To reset your splits, flip between a "9" and "15".
+- Under "MENU > DATA > For 16 Star" select "15". To reset your splits, flip between "9" and "15".
 - Do a quick star in HMC to exit stage, timer will start on exit.
 
 ### Segment RTA (Door)
@@ -138,7 +138,7 @@ Like previously, Usamune ROM needs to provide configuration you need. In this ca
 To reset:
 
 - Exit to lobby.
-- Under "MENU > DATA > For 70 Star" select "34". To reset your splits, flip between a "OFF" and "34".
+- Under "MENU > DATA > For 70 Star" select "34". To reset your splits, flip between "OFF" and "34".
 - Touch the upstairs door, timer will star with door unlocking animation.
 
 ### Single Stage RTA
@@ -163,7 +163,7 @@ To reset:
 * Among the issues I ran into in various recommended autosplitters:
   - Too much configuration. Needs to be configured for each split file (category) differently.
   - Does not support castle movement splits.
-  - Only support one game version.
+  - Only supports one game version (only US, only JP).
   - Issues with split undo not being possible, eg. on final star last split.
   - Misses (reset, ...) due to refresh rate.
   - Generally liked some features of each one, but couldn't quite use any 100%.
