@@ -5,22 +5,22 @@ state("Project64") {
 	// Used to determine which ROM is loaded in PJ64 automatically.
 	uint debugFunctionUS : "Project64.exe", 0xD6A1C, 0x2CB1C0;
 	uint debugFunctionJP : "Project64.exe", 0xD6A1C, 0x2CA6E0;
-	
+
 	uint gameRunTimeJP : "Project64.exe", 0xD6A1C, 0x32C640;
 	uint gameRunTimeUS : "Project64.exe", 0xD6A1C, 0x32D580;
 
 	uint globalTimerJP : "Project64.exe", 0xD6A1C, 0x32C694;
 	uint globalTimerUS : "Project64.exe", 0xD6A1C, 0x32D5D4;
 
-    byte stageIndexJP  : "Project64.exe", 0xD6A1C, 0x32CE9A;
-    byte stageIndexUS  : "Project64.exe", 0xD6A1C, 0x32DDFA;
+	byte stageIndexJP  : "Project64.exe", 0xD6A1C, 0x32CE9A;
+	byte stageIndexUS  : "Project64.exe", 0xD6A1C, 0x32DDFA;
 
 	ushort animationJP : "Project64.exe", 0xD6A1C, 0x339E0C;
 	ushort animationUS : "Project64.exe", 0xD6A1C, 0x33B17C;
 
 	short starCountJP  : "Project64.exe", 0xD6A1C, 0x339EA8;
-    short starCountUS  : "Project64.exe", 0xD6A1C, 0x33B218;
-	
+	short starCountUS  : "Project64.exe", 0xD6A1C, 0x33B218;
+
 	uint musicJP : "Project64.exe", 0xD6A1C, 0x222A1C;
 	uint musicUS : "Project64.exe", 0xD6A1C, 0x22261C;
 }
@@ -83,11 +83,11 @@ startup {
 	ushort STAR_GRAB_ACTION_NO_EXIT = 4871;
 	ushort KEY_DOOR_TOUCH_ACTION = 4910;
 	ushort FINAL_STAR_GRAB_ACTION = 6409;
-	
+
 	uint DEBUG_FUNCTION_VALUE = 0x27bdffd8;
-	
+
 	uint STAR_SELECT_MUSIC = 0x800d1600;
-	
+
 	// Regexes used to parse out information from split name.
 	System.Text.RegularExpressions.Regex STAR_COUNT_BRACKET1 = new System.Text.RegularExpressions.Regex(@"\[(?<starCount>\d+)\]");
 	System.Text.RegularExpressions.Regex STAR_COUNT_BRACKET2 = new System.Text.RegularExpressions.Regex(@"\((?<starCount>\d+)\)");
@@ -110,7 +110,7 @@ startup {
 	// Working data which can be changed in various places.
 	Func<ExpandoObject> initVarsData = delegate() {
 		dynamic data = new ExpandoObject();
-		
+
 		data.lastSplitIndex = -1;
 		data.starRequirement = -1;
 		data.isManualSplit = false;
@@ -124,7 +124,7 @@ startup {
 		data.isRTAMode = false;
 		data.previousStage = 0;
 		data.previousCategoryName = "";
-		
+
 		return data;
 	};
 
@@ -140,7 +140,7 @@ startup {
 	// Settings are copied to this for testing purposes.
 	Func<ExpandoObject> initSettingsData = delegate() {
 		dynamic settingsD = new ExpandoObject();
-		
+
 		settingsD.isResetEnabled = false;
 		settingsD.categoryName = "";
 		settingsD.currentTimerPhase = TimerPhase.NotRunning;
@@ -153,37 +153,37 @@ startup {
 		settingsD.disableResetAfterEnd = false;
 		settingsD.disableRTAMode = false;
 		settingsD.disableBowserRedsDelayedSplit = false;
-		
+
 		return settingsD;
 	};
-	
+
 	vars.settings = initSettingsData();
 
-	// Helper function used in code to avoid duplication.	
+	// Helper function used in code to avoid duplication.
 	Func<dynamic, dynamic, uint> getGameRuntime = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.gameRunTimeJP : state.gameRunTimeUS;
 	};
-	
+
 	Func<dynamic, dynamic, uint> getGlobalTimer = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.globalTimerJP : state.globalTimerUS;
 	};
-	
+
 	Func<dynamic, dynamic, byte> getStageIndex = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.stageIndexJP : state.stageIndexUS;
 	};
-	
+
 	Func<dynamic, dynamic, ushort> getAnimation = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.animationJP : state.animationUS;
 	};
-	
+
 	Func<dynamic, dynamic, short> getStarCount = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.starCountJP : state.starCountUS;
 	};
-	
+
 	Func<dynamic, dynamic, uint> getMusicTrack = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.musicJP : state.musicUS;
 	};
-	
+
 	Func<byte, byte, bool> isStageFadeIn = delegate(byte stageIndex_old, byte stageIndex_current) {
 		return (
 			stageIndex_old != stageIndex_current &&
@@ -191,7 +191,7 @@ startup {
 			STAGE_INDEXES[stageIndex_current]
 		);
 	};
-	
+
 	Func<byte, byte, bool> isStageFadeOut = delegate(byte stageIndex_old, byte stageIndex_current) {
 		return (
 			stageIndex_old != stageIndex_current &&
@@ -205,14 +205,14 @@ startup {
 	Func<dynamic, dynamic, dynamic, bool> updateRunConditionInner = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		// Detect splitting mode between gameplay and RTA.
 		string categoryName = varsD.settings.categoryName;
-		
+
 		if (varsD.data.previousCategoryName != categoryName) {
 			System.Text.RegularExpressions.MatchCollection rtaMatches = RTA.Matches(categoryName);
 
 			varsD.data.isRTAMode = rtaMatches.Count != 0;
 			varsD.data.previousCategoryName = categoryName;
 		}
-		
+
 		// Game version detection needs to be in update for game switching to work properly.
 		varsD.data.isJapaneseVersion = (
 			vars.settings.forceJPGameVersion ||
@@ -257,7 +257,7 @@ startup {
 		varsD.settings.disableResetAfterEnd = settingsD[DISABLE_RESET_AFTER_END];
 		varsD.settings.disableRTAMode = settingsD[DISABLE_RTA_MODE];
 		varsD.settings.disableBowserRedsDelayedSplit = settingsD[DISABLE_BOWSER_REDS_DELAYED_SPLIT];
-		
+
 		// Call inner update logic.
 		return updateRunConditionInner(varsD, oldD, currentD);
 	};
@@ -265,28 +265,28 @@ startup {
 	Func<dynamic, dynamic, dynamic, bool> startRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
-	
+
 		uint globalTimer_current = getGlobalTimer(varsD, currentD);
-		
+
 		byte stageIndex_old = getStageIndex(varsD, oldD);
 		byte stageIndex_current = getStageIndex(varsD, currentD);
-		
+
 		ushort animation_old = getAnimation(varsD, oldD);
 		ushort animation_current = getAnimation(varsD, currentD);
 
 		uint music_old = getMusicTrack(varsD, oldD);
 		uint music_current = getMusicTrack(varsD, currentD);
-		
+
 		// First frame of the logo appears on frame 4 (1.33s after launch).
 		if (!varsD.settings.forceLaunchOnStart && globalTimer_current == 4) {
 			return true;
 		}
-		
+
 		// As soon as game is relaunched if option is selected, quite inconsistent time-wise.
 		if (varsD.settings.forceLaunchOnStart && stageIndex_current == 1 && gameRuntime_current < gameRuntime_old) {
 			return true;
 		}
-				
+
 		// RTA mode, timer starts when we see star select screen, we leave a stage (fade-out) or we touch a door.
 		if (
 			!varsD.settings.disableRTAMode &&
@@ -305,7 +305,7 @@ startup {
 		) {
 			return true;
 		}
-		
+
 		return false;
 	};
 
@@ -344,17 +344,17 @@ startup {
 
 		return false;
 	};
-	
+
 	Func<dynamic, dynamic, dynamic, bool> splitRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		if (varsD.data.lastSplitIndex != varsD.settings.currentSplitIndex) {
 			resetVarsDataForSplitChange(varsD, varsD.settings.currentSplitIndex);
-					
+
 			string splitName = varsD.settings.currentSplitName;
 
 			System.Text.RegularExpressions.MatchCollection manual1Matches = MANUAL1.Matches(splitName);
 			System.Text.RegularExpressions.MatchCollection manual2Matches = MANUAL2.Matches(splitName);
 			varsD.data.isManualSplit = manual1Matches.Count != 0 || manual2Matches.Count != 0;
-			
+
 			System.Text.RegularExpressions.MatchCollection noReset1Matches = NORESET1.Matches(splitName);
 			System.Text.RegularExpressions.MatchCollection noReset2Matches = NORESET2.Matches(splitName);
 			varsD.data.isNoResetSplit = noReset1Matches.Count != 0 || noReset2Matches.Count != 0;
@@ -371,7 +371,7 @@ startup {
 			if (starCountBracket1.Count != 0) {
 				varsD.data.starRequirement = Convert.ToInt32(starCountBracket1[0].Groups["starCount"].Value);
 			}
-			
+
 			System.Text.RegularExpressions.MatchCollection starCountBracket2 = STAR_COUNT_BRACKET2.Matches(splitName);
 			if (starCountBracket2.Count != 0) {
 				varsD.data.starRequirement = Convert.ToInt32(starCountBracket2[0].Groups["starCount"].Value);
@@ -383,7 +383,7 @@ startup {
 				varsD.data.starRequirement == -1
 			);
 		}
-		
+
 		if (varsD.data.isManualSplit) {
 			return false;
 		}
@@ -393,22 +393,22 @@ startup {
 				varsD.data.isSplittingOnLevelChange = condition;
 			}
 		};
-		
+
 		Action<bool> addImmediateSplittingCondition = (condition) => {
 			if (!varsD.data.isSplittingImmediately) {
 				varsD.data.isSplittingImmediately = condition;
 			}
 		};
-		
+
 		// Getting all of the data based on the right ROM region.
 		byte stageIndex_old = getStageIndex(varsD, oldD);
 		byte stageIndex_current = getStageIndex(varsD, currentD);
 
 		ushort animation_old = getAnimation(varsD, oldD);
 		ushort animation_current = getAnimation(varsD, currentD);
-		
+
 		short starCount_current = getStarCount(varsD, currentD);
-		
+
 		bool isInCastle = CASTLE_INDEXES[stageIndex_current];
 		bool isInBowserStage = BOWSER_STAGE_INDEXES[stageIndex_current];
 		bool isInStage = STAGE_INDEXES[stageIndex_current];
@@ -437,9 +437,9 @@ startup {
 				animation_current == STAR_GRAB_ACTION ||
 				animation_current == STAR_GRAB_ACTION_SWIMMING ||
 				(animation_current == STAR_GRAB_ACTION_NO_EXIT && isNoExitStarGrabSplitDelayed)
-			)		
+			)
 		);
-		
+
 		addImmediateSplittingCondition(
 			!varsD.data.isDoorTouchSplit &&
 			!varsD.data.isBowserSplit &&
@@ -448,7 +448,7 @@ startup {
 			!isNoExitStarGrabSplitDelayed &&
 			starCount_current == varsD.data.starRequirement
 		);
-		
+
 		// When we get a star grab animation in a bowser fight stage, we got the key.
 		addLevelChangeSplittingCondition(
 			varsD.data.isBowserSplit &&
@@ -457,7 +457,7 @@ startup {
 			isInBowserFightStage &&
 			optionalStarReqDone
 		);
-		
+
 		// When we are doing castle movement split and we enter a stage.
 		addImmediateSplittingCondition(
 			varsD.data.isCastleMovementSplit &&
@@ -465,14 +465,14 @@ startup {
 			!isSameStageEntry &&
 			(isInStage || isInBowserFightStage)
 		);
-			
+
 		// This is the last split and we are getting the last star, split immediately.
 		addImmediateSplittingCondition(
 			varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1 &&
 			animation_old != animation_current &&
 			animation_current == FINAL_STAR_GRAB_ACTION
 		);
-		
+
 		// When this is a key door split, we split as soon as door touch animation happens.
 		addImmediateSplittingCondition(
 			varsD.data.isDoorTouchSplit &&
@@ -495,7 +495,7 @@ startup {
 
 		return false;
 	};
-	
+
 	// Testing: unit testing is not available for these scripts, this is the best I can think of.
 	Func<dynamic> mockVarsBuilder = delegate() {
 		dynamic varsD = new ExpandoObject();
@@ -503,11 +503,11 @@ startup {
 		Action resetFunc = delegate() {
 			varsD.timerModel.resetCallCount += 1;
 		};
-		
+
 		varsD.timerModel = new ExpandoObject();
 		varsD.timerModel.resetCallCount = 0;
 		varsD.timerModel.Reset = resetFunc;
-		
+
 		varsD.data = initVarsData();
 		varsD.settings = initSettingsData();
 		return varsD;
@@ -515,52 +515,52 @@ startup {
 
 	Func<bool, uint, uint, byte, ushort, short, uint, dynamic> mockStateBuilder = delegate(bool isJP, uint gameRuntime, uint globalTimer, byte stageIndex, ushort animation, short starCount, uint music) {
 		dynamic state = new ExpandoObject();
-		
+
 		uint defaultDebugFunctionValue = 0xf1f1f1f1;
 		state.debugFunctionJP = isJP ? DEBUG_FUNCTION_VALUE : defaultDebugFunctionValue;
 		state.debugFunctionUS = isJP ? defaultDebugFunctionValue : DEBUG_FUNCTION_VALUE;
-		
+
 		uint defaultGameRuntime = 0xf2f2f2f2;
 		state.gameRunTimeJP = isJP ? gameRuntime : defaultGameRuntime;
 		state.gameRunTimeUS = isJP ? defaultGameRuntime : gameRuntime;
-		
+
 		uint defaultGlobalTimer = 0xf7f7f7f7;
 		state.globalTimerJP = isJP ? globalTimer : defaultGlobalTimer;
 		state.globalTimerUS = isJP ? defaultGlobalTimer : globalTimer;
-		
+
 		byte defaultStageIndex = 0xf3;
 		state.stageIndexJP = isJP ? stageIndex : defaultStageIndex;
 		state.stageIndexUS = isJP ? defaultStageIndex : stageIndex;
-		
+
 		ushort defaultAnimation = 0xf4;
 		state.animationJP = isJP ? animation : defaultAnimation;
 		state.animationUS = isJP ? defaultAnimation : animation;
-		
+
 		short defaultStarCount = 0xf5;
 		state.starCountJP = isJP ? starCount : defaultStarCount;
 		state.starCountUS = isJP ? defaultStarCount : starCount;
-		
+
 		uint defaultMusic = 0xf6f6f6f6;
 		state.musicJP = isJP ? music : defaultMusic;
 		state.musicUS = isJP ? defaultMusic : music;
-		
+
 		return state;
 	};
-	
+
 	bool hasTestErrors = false;
 
 	Action<bool, bool, string> assertCondition = delegate(bool isJP, bool result, string message) {
 		if (!result) {
 			message += isJP ? " (JP)" : " (US)";
-			
+
 			if (!hasTestErrors) {
 				settings.Add("testErrors", true, "Errors running tests");
 				hasTestErrors = true;
 			}
-			
-			
+
+
 			settings.Add(message, false, message, "testErrors");
-		}		
+		}
 	};
 
 	Action<bool> testDoesNotResetNormalConditions = delegate(bool isJP) {
@@ -568,7 +568,7 @@ startup {
 
 		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 0, 0);
 		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
-		
+
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testDoesNotResetNormalConditions: update returned false");
 
@@ -578,66 +578,66 @@ startup {
 
 	testDoesNotResetNormalConditions(true);
 	testDoesNotResetNormalConditions(false);
-	
+
 	Action<bool> testResetWhenGameRestarted = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 
 		dynamic oldD = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
 		dynamic currentD = mockStateBuilder(isJP, 0, 0, 1, 0, 0, 0);
-		
+
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testResetWhenGameRestarted: update returned false");
-		
+
 		varsD.data.previousStage = 10;
-		
+
 		bool isReset = resetRunCondition(varsD, oldD, currentD);
 		assertCondition(isJP, isReset, "testResetWhenGameRestarted: reset returned false");
 		assertCondition(isJP, varsD.data.previousStage == 0, "testResetWhenGameRestarted: previous stage was not reset to 0");
 	};
-	
+
 	testResetWhenGameRestarted(true);
 	testResetWhenGameRestarted(false);
-	
+
 	Action<bool> testResetWhenRTAModeAndStarsReduction = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 		varsD.data.isRTAMode = true;
 
 		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 60, 0);
 		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 58, 0);
-		
+
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testResetWhenRTAModeAndStarsReduction: update returned false");
-		
+
 		varsD.data.previousStage = 10;
-		
+
 		bool isReset = resetRunCondition(varsD, oldD, currentD);
 		assertCondition(isJP, isReset, "testResetWhenRTAModeAndStarsReduction: reset returned false");
 		assertCondition(isJP, varsD.data.previousStage == 0, "testResetWhenRTAModeAndStarsReduction: previous stage was not reset to 0");
 	};
-	
+
 	testResetWhenRTAModeAndStarsReduction(true);
 	testResetWhenRTAModeAndStarsReduction(false);
-	
+
 	Action<bool> testStartRunOnFrame4 = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 
 		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
 		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0, 0);
 		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0, 0);
-		
+
 		bool isUpdate = updateRunConditionInner(varsD, state1, state2);
 		assertCondition(isJP, isUpdate, "testStartRunOnFrame4: update returned false");
-	
+
 		bool isStart = startRunCondition(varsD, state1, state2);
 		assertCondition(isJP, !isStart, "testStartRunOnFrame4: start returned true before frame 4");
-		
+
 		isStart = startRunCondition(varsD, state2, state3);
-		assertCondition(isJP, isStart, "testStartRunOnFrame4: start did not return true on frame 4");		
+		assertCondition(isJP, isStart, "testStartRunOnFrame4: start did not return true on frame 4");
 	};
-	
+
 	testStartRunOnFrame4(true);
 	testStartRunOnFrame4(false);
-	
+
 	Action<bool> testStartForceOnLaunch = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 		varsD.settings.forceLaunchOnStart = true;
@@ -645,20 +645,20 @@ startup {
 		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
 		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0, 0);
 		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0, 0);
-		
+
 		bool isUpdate = updateRunConditionInner(varsD, state1, state2);
 		assertCondition(isJP, isUpdate, "testStartForceOnLaunch: update returned false");
-	
+
 		bool isStart = startRunCondition(varsD, state1, state2);
 		assertCondition(isJP, isStart, "testStartForceOnLaunch: start did not returned true on relaunch");
-		
+
 		isStart = startRunCondition(varsD, state2, state3);
 		assertCondition(isJP, !isStart, "testStartForceOnLaunch: start returned true on frame 4");
 	};
-	
+
 	testStartForceOnLaunch(true);
 	testStartForceOnLaunch(false);
-	
+
 	// FIXME: complete testing.
 
 	// Functions to be used in the various right places.
@@ -673,16 +673,16 @@ startup {
 	if (hasTestErrors) {
 		return;
 	}
-	
+
 	settings.Add("generalSettings", true, "General Settings");
 	settings.Add(LAUNCH_ON_START, false, "Start on game launch instead of logo first frame (logo is more consistent, at 1.33s offset)", "generalSettings");
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
 	settings.Add(DISABLE_RTA_MODE, false, "Disable stage RTA mode.", "generalSettings");
 	settings.Add(DISABLE_BOWSER_REDS_DELAYED_SPLIT, false, "Disable bowser reds delayed split (default: split on pipe entry)", "generalSettings");
 
-    settings.Add("gameVersion", false, "Force Game Version (defaults to automatic detection, recommended)");
+	settings.Add("gameVersion", false, "Force Game Version (defaults to automatic detection, recommended)");
 	settings.Add(GAME_VERSION_JP, false, "JP", "gameVersion");
-    settings.Add(GAME_VERSION_US, false, "US", "gameVersion");
+	settings.Add(GAME_VERSION_US, false, "US", "gameVersion");
 }
 
 start {
