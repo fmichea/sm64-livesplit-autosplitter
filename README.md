@@ -55,7 +55,7 @@ There are 4 basic types of splits that can be defined:
 
 In addition, two modifiers are available:
 
-- Forbid auto-splitter to reset timer for current split. Add "\[reset\]" or "(reset)" anywhere in split name.
+- Forbid auto-splitter to reset timer for current split. Add "\[noreset\]" or "(noreset)" anywhere in split name.
     - "Game is good \[noreset\]"
     - "Sound glitch (noreset)"
 - Forbid the auto-splitter from splitting for current split. Add "\[manual\]" or "(manual)" anywhere in split name.
