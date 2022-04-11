@@ -6,9 +6,9 @@ This is my personal autosplitter for livesplit to be used with Project64 1.6 for
 It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me*, so I decided
 to write my own. Still this would not exist without them, so please check them out:
 
-- https://github.com/ColinT/banana-split/blob/master/script.asl
+- https://github.com/ColinT/banana-split
 - https://github.com/andysandford/sm64-livesplit-autosplitter
-- https://github.com/aglab2/LiveSplitAutoSplitters/blob/master/LiveSplit.SuperMario64.asl
+- https://github.com/aglab2/LiveSplitAutoSplitters
 
 You are welcome to try this splitter as well, it has worked well for me so far, however there might be bugs that slipped in.
 If you report those, I will try to address them. I also welcome feature requests if you have any.
