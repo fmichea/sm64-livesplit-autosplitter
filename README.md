@@ -53,6 +53,17 @@ There are 4 basic types of splits that can be defined:
     - "Lakitu Skip"
     - "Mips"
 
+In addition, two modifiers are available:
+
+- Forbid auto-splitter to reset timer for current split. Add "\[reset\]" or "(reset)" anywhere in split name.
+    - "Game is good \[noreset\]"
+    - "Sound glitch (noreset)"
+- Forbid the auto-splitter from splitting for current split. Add "\[manual\]" or "(manual)" anywhere in split name.
+  You will have to split or skip manually. Can be used if auto-splitter is miss-behaving or if a condition is not
+  supported.
+    - "Thing or something \[manual\]"
+    - "Not supported (manual)"
+
 ## Format Explained
 
 ### Star Requirement Split

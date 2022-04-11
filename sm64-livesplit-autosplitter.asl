@@ -1,4 +1,4 @@
-// Version: 0.0.2
+// Version: 0.1.0
 
 state("Project64") {
 	// This looks like it always has value vars.consts.DEBUG_FUNCTION_VALUE in the correct ROM.
@@ -91,11 +91,18 @@ startup {
 	// Regexes used to parse out information from split name.
 	System.Text.RegularExpressions.Regex STAR_COUNT_BRACKET1 = new System.Text.RegularExpressions.Regex(@"\[(?<starCount>\d+)\]");
 	System.Text.RegularExpressions.Regex STAR_COUNT_BRACKET2 = new System.Text.RegularExpressions.Regex(@"\((?<starCount>\d+)\)");
+
 	System.Text.RegularExpressions.Regex UPSTAIRS = new System.Text.RegularExpressions.Regex(@"(?i)upstairs");
 	System.Text.RegularExpressions.Regex BASEMENT = new System.Text.RegularExpressions.Regex(@"(?i)basement");
 	System.Text.RegularExpressions.Regex BOWSER = new System.Text.RegularExpressions.Regex(@"(?i)bowser");
 	System.Text.RegularExpressions.Regex KEY = new System.Text.RegularExpressions.Regex(@"(?i)key");
 	System.Text.RegularExpressions.Regex RTA = new System.Text.RegularExpressions.Regex(@"(?i)rta");
+
+	System.Text.RegularExpressions.Regex NORESET1 = new System.Text.RegularExpressions.Regex(@"(?i)\[noreset\]");
+	System.Text.RegularExpressions.Regex NORESET2 = new System.Text.RegularExpressions.Regex(@"(?i)\(noreset\)");
+
+	System.Text.RegularExpressions.Regex MANUAL1 = new System.Text.RegularExpressions.Regex(@"(?i)\[manual\]");
+	System.Text.RegularExpressions.Regex MANUAL2 = new System.Text.RegularExpressions.Regex(@"(?i)\(manual\)");
 
 	// Helper attributes related to LiveSplit.
 	vars.timerModel = new TimerModel { CurrentState = timer };
@@ -106,6 +113,8 @@ startup {
 		
 		data.lastSplitIndex = -1;
 		data.starRequirement = -1;
+		data.isManualSplit = false;
+		data.isNoResetSplit = false;
 		data.isBowserSplit = false;
 		data.isDoorTouchSplit = false;
 		data.isCastleMovementSplit = true;
@@ -231,6 +240,7 @@ startup {
 		// DEBUGGING: Add prints here for debugging. Every 5s.
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
 		if (gameRuntime_current % 150 == 0) {
+			// print(string.Format("{0}", varsD.data.isManualSplit));
 		}
 
 		// Copy settings to var to help with testing.
@@ -304,6 +314,10 @@ startup {
 	};
 
 	Func<dynamic, dynamic, dynamic, bool> resetRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
+		if (varsD.data.isNoResetSplit) {
+			return false;
+		}
+
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
 
@@ -336,11 +350,19 @@ startup {
 			resetVarsDataForSplitChange(varsD, varsD.settings.currentSplitIndex);
 					
 			string splitName = varsD.settings.currentSplitName;
+
+			System.Text.RegularExpressions.MatchCollection manual1Matches = MANUAL1.Matches(splitName);
+			System.Text.RegularExpressions.MatchCollection manual2Matches = MANUAL2.Matches(splitName);
+			varsD.data.isManualSplit = manual1Matches.Count != 0 || manual2Matches.Count != 0;
 			
+			System.Text.RegularExpressions.MatchCollection noReset1Matches = NORESET1.Matches(splitName);
+			System.Text.RegularExpressions.MatchCollection noReset2Matches = NORESET2.Matches(splitName);
+			varsD.data.isNoResetSplit = noReset1Matches.Count != 0 || noReset2Matches.Count != 0;
+
 			System.Text.RegularExpressions.MatchCollection bowserMatches = BOWSER.Matches(splitName);
 			System.Text.RegularExpressions.MatchCollection keyMatches = KEY.Matches(splitName);
 			varsD.data.isBowserSplit = bowserMatches.Count != 0 || keyMatches.Count != 0;
-			
+
 			System.Text.RegularExpressions.MatchCollection upstairsMatches = UPSTAIRS.Matches(splitName);
 			System.Text.RegularExpressions.MatchCollection basementMatches = BASEMENT.Matches(splitName);
 			varsD.data.isDoorTouchSplit = (upstairsMatches.Count != 0 || basementMatches.Count != 0);
@@ -362,6 +384,10 @@ startup {
 			);
 		}
 		
+		if (varsD.data.isManualSplit) {
+			return false;
+		}
+
 		Action<bool> addLevelChangeSplittingCondition = (condition) => {
 			if (!varsD.data.isSplittingOnLevelChange) {
 				varsD.data.isSplittingOnLevelChange = condition;
