@@ -3,7 +3,7 @@ sm64-livesplit-autosplitter.asl - Super Mario 64 Livesplit Auto-Splitter
 
 This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64.
 
-It is heavily (**heavily**) inspired by a few other autosplitter, however these did not quite do it for me*, so I decided
+It is heavily (**heavily**) inspired by a few other auto-splitters, however these did not quite do it for me[*](#footnotes), so I decided
 to write my own. Still this would not exist without them, so please check them out:
 
 - https://github.com/ColinT/banana-split
@@ -28,43 +28,51 @@ Here is a list of features of this auto splitter:
 
 # Installation
 
-- Download the ASL script on your computer.
-- Open Livesplit, select your SM64 layout, right click -> Edit Layout.
-- If not already present, click "+" button, "Control" and add "Scriptable Auto Splitter".
-- Click "Layout Settings" and find "Scriptable Auto Splitter" tab.
-- Under Script Path select the ASL script.
-- You should now see settings in the box, all defaults should be fine (no change required).
-- Save and Done.
+## Stable Version
 
-![70 Star](./images/settings.jpg)
+- Go to the releases here: https://github.com/fmichea/sm64-livesplit-autosplitter/releases and download the ASL
+  file attached to latest release.
+- Open ``Livesplit``, select your SM64 layout, right click -> ``Edit Layout``.
+- If not already present, click ``"+"`` button, ``"Control"`` and add ``"Scriptable Auto Splitter"``.
+- Click ``"Layout Settings"`` and find ``"Scriptable Auto Splitter"`` tab.
+- Under ``Script Path`` select the ASL script.
+- You should now see settings in the box: **DO NOT CHANGE ANYTHING UNLESS YOU KNOW WHAT YOU ARE DOING**.
+- ``Save`` and done.
+
+![Settings](./images/settings.jpg)
+
+## Development Version
+
+- Download the ASL script directly from main here: https://raw.githubusercontent.com/fmichea/sm64-livesplit-autosplitter/main/sm64-livesplit-autosplitter.asl
+- Install using the same process as stable version.
+
+Please note that development version may contain bugs.
 
 # Split Name Format
 
-There are 4 basic types of splits that can be defined:
+There are a few types of splits that can be defined, here are some examples:
 
-- Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a few conditions.
-    - "HMC (15)"
-- Bowser splits: split on bowser only after the key has been grabbed.
-    - "Bowser 3"
-    - "Key 1 (9)"
-- Door split: split when touching either the basement door or the upstairs door.
-    - "Upstairs \[74\]"
+- Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a
+  few conditions.
+    - ``HMC (15)``
+    - ``Mips + SSL [24]``
+- Bowser stage splits: split when entering the pipe at the end of Dark World, Fire Sea or Sky.
+    - ``Dark World Pipe``
+- Bowser fight splits: split on bowser only after the key has been grabbed.
+    - ``Bowser 3``
+    - ``Key 1 (9)``
+- Door unlock split: split when touching either the basement door or the upstairs door.
+    - ``Upstairs [74]``
+    - ``Basement (26)``
 - Castle movement split: when measuring time between two stages
-    - "Lakitu Skip"
-    - "Mips"
+    - ``Lakitu Skip``
+    - ``Mips`` (special, splits on XCAM)
+- Door interaction splits: split happens after a certain number of door interactions, more on this later.
+- Stage entry and exit splits: split happens when entering or exit a specific stage.
 
-In addition, two modifiers are available:
+A few modifiers are also available and will be explained in the more advanced format below.
 
-- Forbid auto-splitter to reset timer for current split. Add "\[noreset\]" or "(noreset)" anywhere in split name.
-    - "Game is good \[noreset\]"
-    - "Sound glitch (noreset)"
-- Forbid the auto-splitter from splitting for current split. Add "\[manual\]" or "(manual)" anywhere in split name.
-  You will have to split or skip manually. Can be used if auto-splitter is miss-behaving or if a condition is not
-  supported.
-    - "Thing or something \[manual\]"
-    - "Not supported (manual)"
-
-## Format Explained
+## Main Format and Keywords
 
 ### Star Requirement Split
 
@@ -77,27 +85,51 @@ The splitting moment depends on a few conditions. Once the correct number of sta
   on pipe entry by default (settings can change this).
 - If the star is grabbed in the castle, not a stage, the split happens when entering the next stage (fade in).
 
-Note: If using subsplit, the first star requirement is used on the split with both subsplit category and split. 
+The timing for splitting can be overridden by the following modifiers. If a split uses both one of the following
+modifiers, and a star count condition, then star count condition must be fulfilled at the time the splitting
+condition happens.
 
-### Bowser Split
+### Bowser Fight Split
 
-To be considered a bowser split, the split name must contain "bowser" or "key" (in any case). This will only split when exiting the bowser
-fight with the key. A star requirement may be added to these split. It does not change the split moment, however does prevent split if
-the star was not collected before collecting the bowser key.
+To be considered a bowser split, the split name must contain ``bowser`` or ``key``. It will split on bowser key grab fadeout.
 
-### Door Split
+### Bowser Stage Split
 
-To be considered a door split, the split name must contain either "basement" or "upstairs" in its name. This will split only when the door
-unlocking animation happens. Like bowser, a star requirement may be added and will prevent splitting if star have not all been collected.
+To be considered a bowser stage split, the split name must contain ``pipe``. It will split on pipe entry fadeout.
 
 ### Castle Movement Split
 
-This is any split that does not fit into the previous two categories. There cannot be two castle movement splits in a row, because the split
-will happen when entering any stage in the castle. Splitting will happen on fade in to stage entry. Also to note, it is not possible to split
-on stage entry for the stage that was just left. Castle movement must be between two different stages. This allows re-entering the previous
-stage, using EXIT STAGE inside of pause menu to go back to castle lobby, then moving towards another stage.
+If split is not in any other category, it is a castle movement split, which means it splits on next level entry. The previous level exited does
+not count, which allows re-entering it to EXIT COURSE back to castle lobby.
 
-### Examples
+## Advanced Format
+
+### Key Door Unlock Split
+
+To be considered a key door split, the split name must contain either ``basement`` or ``upstairs`` in its name. It will split on
+the key door unlock animation. If the door is already unlocked, it will not split.
+
+### Star Door Entry Split
+
+To be considered a star door entry split, it must contain the following splitter instruction: ``[star-door=70]``. Acceptable star
+doors are 8, 30, 50 and 70. It will split when the door is being entered. Can be used to split the two BLJs separately in 16 star
+for example.
+
+### Stage Entry and Exit
+
+This forces the split to happen when entering or exiting a specific stage. The syntax is ``[entry=bob]`` or ``[exit=36]``. All
+vanilla stages have a shortcut ([here](#stage-name-shortcuts)) but numbers are allowed for both instructions in order to
+support ROM Hacks.
+
+### Miscellaneous
+
+- For standard star count requirement splits, it is possible to change the default splitting time using ``[fade]`` or ``[immediate]``.
+- It is possible to prevent emulator reset from resetting run on specific split using ``[noreset]``. If reset happens twice in a row
+  within 5 seconds then the reset does happen (force timer reset).
+- If a split is marked with ``[manual]`` then you are responsible for splitting.
+- **Importantly**: all instructions can be merged into one block comma separated, eg. ``[26,immediate,noreset]``
+
+## Examples
 
 ![70 Star](./images/70_star.jpg)
 
@@ -109,6 +141,12 @@ stage, using EXIT STAGE inside of pause menu to go back to castle lobby, then mo
 - "Mips Clip" is a castle movement split and splits on stage entry to DDD.
 - "BLJs" splits movement from FS to Sky. Note that it is fine to re-enter FS to exit to lobby.
 	This is the only stage that can be re-entered without splitting.
+
+### Advanced Info
+
+Within the ASL script, there is a section called ``USER_CUSTOMIZATION_BEGIN``, in which you can customize all
+of the keywords for bowser fight, bowser stage and key unlock if the default ones do not fit your needs. Remember
+to port these changes every time you upgrade the script.
 
 RTA Mode
 --------
@@ -169,12 +207,48 @@ To reset:
 - Under "MENU > DATA > For 0 Star", flip between OFF and DWEND. DWEND should be selected at the start of stage RTA. This resets all stars in stage.
 - Enter painting or select stage in menu, this will start the timer.
 
-**Footnotes:**
+# Additional Notes
 
-* Among the issues I ran into in various recommended autosplitters:
+## Footnotes:
+
+* Among the issues I ran into in various other auto-splitters:
   - Too much configuration. Needs to be configured for each split file (category) differently.
   - Does not support castle movement splits.
   - Only supports one game version (only US, only JP).
   - Issues with split undo not being possible, eg. on final star last split.
   - Misses (reset, ...) due to refresh rate.
   - Generally liked some features of each one, but couldn't quite use any 100%.
+
+## Split Names Shortcuts
+
+For entry and exit splits, here are all of the shortcuts that can be used to refer to the different stages in vanilla:
+
+| Full Stage Name             | Shortcut  |
+|-----------------------------|-----------|
+| Aquarium                    | ``aqua``  |
+| Big Boo's Haunt             | ``bbh``   |
+| Bob-Omb Battlefield         | ``bob``   |
+| Bowser 1                    | ``bow1``  |
+| Bowser 2                    | ``bow2``  |
+| Bowser 3                    | ``bow3``  |
+| Bowser in the Dark World    | ``dw``    |
+| Bowser in the Fire Sea      | ``fs``    |
+| Bowser in the Sky           | ``sky``   |
+| Cavern of the Metal Cap     | ``cotmc`` |
+| Cool Cool Mountain          | ``ccm``   |
+| Dire, Dire Docks            | ``ddd``   |
+| Hazy Maze Cave              | ``hmc``   |
+| Jolly Roger Bay             | ``jrb``   |
+| Lethal Lava Land            | ``lll``   |
+| Rainbow Ride                | ``rr``    |
+| Shifting Sand Land          | ``ssl``   |
+| Snowman's Land              | ``sl``    |
+| Tall, Tall Mountain         | ``ttm``   |
+| The Princess's Secret Slide | ``pss``   |
+| Tick Tock Clock             | ``ttc``   |
+| Tiny Huge Island            | ``thi``   |
+| Tower of the Wing Cap       | ``totwc`` |
+| Vanish Cap Under the Moat   | ``vcutm`` |
+| Wet Dry World               | ``wdw``   |
+| Whomp's Fortress            | ``wf``    |
+| Wing Mario Over the Rainbow | ``wmotr`` |
