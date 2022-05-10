@@ -1,4 +1,4 @@
-// Version: 1.0.0
+// Version: 1.0.1
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -265,6 +265,7 @@ startup {
 	uint STAR_SELECT_MUSIC = 0x800d1600;
 
 	ushort FIXED_CAMERA_HUD = 0x4;
+	ushort FIXED_CAMERA_CDOWN_HUD = 0xC;
 
 	// Allows defining a 3D rectangular box to checkpoint mario's position for various splitting conditions.
 	Func<byte, float, float, float, float, float, float, dynamic> create3DBox = delegate(byte stageIndex, float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -992,7 +993,10 @@ startup {
 		addImmediateSplittingCondition(
 			splitConfig.type == SPLIT_TYPE_MIPS_CLIP &&
 			hudCameraMode_old != hudCameraMode_current &&
-			hudCameraMode_current == FIXED_CAMERA_HUD &&
+			(
+				hudCameraMode_current == FIXED_CAMERA_HUD ||
+				hudCameraMode_current == FIXED_CAMERA_CDOWN_HUD
+			) &&
 			warpDestination_current == DDD_STAGE_INDEX
 		);
 
