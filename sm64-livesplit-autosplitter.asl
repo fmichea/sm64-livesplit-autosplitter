@@ -1,4 +1,4 @@
-// Version: 1.0.1
+// Version: 2.0.0
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -79,12 +79,6 @@ startup {
 		"basement",
 	};
 
-	// MIPS_XCAM_KEYWORDS: MIPS split is split on XCAM not fade-in by convention, these keywords specify which splits
-	//     are consider mips specific and should split this way.
-	string[] MIPS_CLIP_KEYWORDS = new string[]{
-		"mips",
-	};
-
 	// RTA_CATEGORY_KEYWORDS: Use in category name to enable RTA mode where more reset and start condition are available
 	//    to facilitate RTA practice with timer on USAMUNE.
 	string[] RTA_CATEGORY_KEYWORDS = new string[]{
@@ -110,7 +104,6 @@ startup {
 	HashSet<string> BOWSER_FIGHT_KEYWORDS_SET = buildKeywordsSet(BOWSER_FIGHT_KEYWORDS);
 	HashSet<string> BOWSER_STAGE_KEYWORDS_SET = buildKeywordsSet(BOWSER_STAGE_KEYWORDS);
 	HashSet<string> KEY_UNLOCK_KEYWORDS_SET = buildKeywordsSet(KEY_UNLOCK_KEYWORDS);
-	HashSet<string> MIPS_CLIP_KEYWORDS_SET = buildKeywordsSet(MIPS_CLIP_KEYWORDS);
 	HashSet<string> RTA_CATEGORY_KEYWORDS_SET = buildKeywordsSet(RTA_CATEGORY_KEYWORDS);
 	HashSet<string> BLINDFOLDED_CATEGORY_KEYWORDS_SET = buildKeywordsSet(BLINDFOLDED_CATEGORY_KEYWORDS);
 
@@ -335,6 +328,9 @@ startup {
 	System.Text.RegularExpressions.Regex ENTRY = new System.Text.RegularExpressions.Regex(@"^entry=(?<stageID>(\w+|\d+))$");
 	System.Text.RegularExpressions.Regex EXIT = new System.Text.RegularExpressions.Regex(@"^exit=(?<stageID>(\w+|\d+))$");
 	System.Text.RegularExpressions.Regex STAR_DOOR = new System.Text.RegularExpressions.Regex(@"^star-door=(?<starCount>(8|30|50|70))$");
+
+	// Special
+	System.Text.RegularExpressions.Regex MIPS_CLIP = new System.Text.RegularExpressions.Regex(@"(?i)mips\s+clip");
 
 	// TODO(#6): AutoSplitter64 compatibility
 	// System.Text.RegularExpressions.Regex XCAM_COUNT = new System.Text.RegularExpressions.Regex(@"^xcam=(?<count>\d+)$");
@@ -572,11 +568,6 @@ startup {
 		// Ensure latest category name has been parsed.
 		parseCategoryName(varsD);
 
-		// When playing in blindfolded mode, reset is fully disabled.
-		if (varsD.data.isBlindfoldedMode) {
-			varsD.settings.isResetEnabled = false;
-		}
-
 		// Game version detection needs to be in update for game switching to work properly (before any current/old use).
 		varsD.data.isJapaneseVersion = (
 			vars.settings.forceJPGameVersion ||
@@ -591,6 +582,7 @@ startup {
 		if (
 			varsD.settings.isResetEnabled &&
 			varsD.settings.currentTimerPhase == TimerPhase.Ended &&
+			!varsD.data.isBlindfoldedMode &&
 			!varsD.settings.disableResetAfterEnd &&
 			varsD.functions.resetRunCondition(varsD, oldD, currentD)
 		) {
@@ -686,6 +678,11 @@ startup {
 	Func<dynamic, dynamic, dynamic, bool> resetRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
+
+		// When playing in blindfolded mode, reset is fully disabled.
+		if (varsD.data.isBlindfoldedMode) {
+			return false;
+		}
 
 		// When split is marked as no reset, reset conditions are ignored, unless a reset happens twice within
 		// NO_RESET_SECONDS_LEEWAY number of seconds (when greater than 0). In this case reset does happen.
@@ -826,7 +823,10 @@ startup {
 			splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
 		} else if (splitNameWords.Overlaps(BOWSER_STAGE_KEYWORDS_SET)) {
 			splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
-		} else if (splitNameWords.Overlaps(MIPS_CLIP_KEYWORDS_SET)) {
+		}
+
+		System.Text.RegularExpressions.MatchCollection mipsClipMatch = MIPS_CLIP.Matches(splitName);
+		if (mipsClipMatch.Count != 0) {
 			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
 		}
 

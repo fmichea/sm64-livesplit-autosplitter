@@ -66,7 +66,7 @@ There are a few types of splits that can be defined, here are some examples:
     - ``Basement (26)``
 - Castle movement split: when measuring time between two stages
     - ``Lakitu Skip``
-    - ``Mips`` (special, splits on XCAM)
+    - ``Mips Clip`` (special, splits on XCAM)
 - Door interaction splits: split happens after a certain number of door interactions, more on this later.
 - Stage entry and exit splits: split happens when entering or exit a specific stage.
 
@@ -138,7 +138,7 @@ support ROM Hacks.
 
 ![16 Star](./images/16_star.jpg)
 
-- "Mips Clip" is a castle movement split and splits on stage entry to DDD.
+- "Mips Clip" is a castle movement split and splits on stage entry to DDD (on the xcam because it's mips clip).
 - "BLJs" splits movement from FS to Sky. Note that it is fine to re-enter FS to exit to lobby.
 	This is the only stage that can be re-entered without splitting.
 
