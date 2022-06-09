@@ -1,4 +1,4 @@
-// Version: 2.0.0
+// Version: 2.1.0
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -218,6 +218,7 @@ startup {
 	string GAME_VERSION_US = "gameVersionUS";
 
 	string LAUNCH_ON_START = "launchOnStart";
+	string USE_DELAYED_RESET = "useDelayedReset";
 	string DISABLE_RESET_AFTER_END = "disableResetAfterEnd";
 	string DISABLE_RTA_MODE = "disableRTAMode";
 	string DISABLE_BOWSER_REDS_DELAYED_SPLIT = "disableBowserRedsDelayedSplit";
@@ -385,6 +386,7 @@ startup {
 
 		data.previousStage = 0;
 		data.previousCategoryName = "";
+		data.wantToReset = false;
 
 		return data;
 	};
@@ -409,6 +411,7 @@ startup {
 		settingsD.currentSplitName = "";
 		settingsD.splitCount = 0;
 		settingsD.forceLaunchOnStart = false;
+		settingsD.useDelayedReset = false;
 		settingsD.forceJPGameVersion = false;
 		settingsD.forceUSGameVersion = false;
 		settingsD.disableResetAfterEnd = false;
@@ -611,6 +614,8 @@ startup {
 			varsD.settings.currentSplitName = timerD.CurrentSplit.Name;
 		}
 		varsD.settings.splitCount = timerD.Run.Count;
+		varsD.settings.forceLaunchOnStart = settingsD[LAUNCH_ON_START];
+		varsD.settings.useDelayedReset = settingsD[USE_DELAYED_RESET];
 		varsD.settings.forceJPGameVersion = settingsD[GAME_VERSION_JP];
 		varsD.settings.forceUSGameVersion = settingsD[GAME_VERSION_US];
 		varsD.settings.disableResetAfterEnd = settingsD[DISABLE_RESET_AFTER_END];
@@ -672,6 +677,7 @@ startup {
 	// onResetRunCondition ensures important variable re-initialization always happens after reset.
 	Action<dynamic> onResetRunCondition = delegate(dynamic varsD) {
 		varsD.data.previousStage = 0;
+		varsD.data.wantToReset = false;
 	};
 
 	// resetRunCondition determines if run should be reset, stopping the timer and resetting it to its initial value.
@@ -706,7 +712,13 @@ startup {
 			starCount_current < starCount_old
 		);
 
-		if (isResetGame || isResetRTA) {
+		varsD.data.wantToReset = varsD.data.wantToReset || isResetGame;
+
+		if (
+			isResetRTA ||
+			(isResetGame && !varsD.settings.useDelayedReset) ||
+			(varsD.settings.useDelayedReset && varsD.data.wantToReset && startRunCondition(varsD, oldD, currentD))
+		) {
 			onResetRunCondition(varsD);
 			return true;
 		}
@@ -1225,13 +1237,10 @@ startup {
 	vars.functions.updateRunCondition = updateRunCondition;
 
 	// Configure settings for this splitter now that we know it works.
-	if (hasTestErrors) {
-		return;
-	}
-
 	settings.Add("expertMode", false, "MANUAL/EXPERT MODE (I know what I'm doing)");
 
 	settings.Add("generalSettings", true, "General Settings", "expertMode");
+	settings.Add(USE_DELAYED_RESET, false, "Delay reset of timer until restart (default: timer reset and start are separate events).", "generalSettings");
 	settings.Add(LAUNCH_ON_START, false, "Start on game launch instead of logo first frame (logo is more consistent, at 1.33s offset)", "generalSettings");
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
 	settings.Add(DISABLE_RTA_MODE, false, "Disable stage RTA mode.", "generalSettings");
