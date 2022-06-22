@@ -1,4 +1,4 @@
-// Version: 2.1.2
+// Version: 2.1.3
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -676,6 +676,7 @@ startup {
 
 	// onResetRunCondition ensures important variable re-initialization always happens after reset.
 	Action<dynamic> onResetRunCondition = delegate(dynamic varsD) {
+		varsD.data.lastSplitIndex = -1;
 		varsD.data.previousStage = 0;
 		varsD.data.wantToReset = false;
 	};

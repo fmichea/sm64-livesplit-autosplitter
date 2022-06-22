@@ -50,6 +50,8 @@ Please note that development version may contain bugs.
 
 # Split Name Format
 
+> :warning: Always edit the splits while the timer is reset! If you feel like your change is not working but follows the format, consider saving your splits as well as restarting livesplit to potentially resolve this issue.
+
 There are a few types of splits that can be defined, here are some examples:
 
 - Star requirement split (stage, single star): when grabbing a certain number of stars. These split depending on a
