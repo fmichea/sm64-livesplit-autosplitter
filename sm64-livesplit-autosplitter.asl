@@ -1,4 +1,4 @@
-// Version: 2.1.1
+// Version: 2.1.0
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -934,16 +934,12 @@ startup {
 		);
 
 		addImmediateSplittingCondition(
-			isStarGrabConditionMet && (
-				splitConfig.isForcedImmediate && (
-					animation_current == ACT_STAR_DANCE_EXIT ||
-					animation_current == ACT_STAR_DANCE_WATER ||
-					animation_current == ACT_STAR_DANCE_NO_EXIT
-				)
-			) || (
-				animation_current == ACT_STAR_DANCE_NO_EXIT &&
-				!isNoExitStarGrabSplitDelayed
-			)
+			isStarGrabConditionMet &&
+			(
+				splitConfig.isForcedImmediate ||
+				animation_current == ACT_STAR_DANCE_NO_EXIT
+			) &&
+			!isNoExitStarGrabSplitDelayed
 		);
 
 		// When we get a star grab animation in a bowser fight stage, we got the key.
