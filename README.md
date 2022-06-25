@@ -129,7 +129,20 @@ support ROM Hacks.
 - It is possible to prevent emulator reset from resetting run on specific split using ``[noreset]``. If reset happens twice in a row
   within 5 seconds then the reset does happen (force timer reset).
 - If a split is marked with ``[manual]`` then you are responsible for splitting.
+- Bowser stage and key can also be configured using ``[key]``, ``[bowser]`` or ``[pipe]``. Also available, is ``[mips]``.
 - **Importantly**: all instructions can be merged into one block comma separated, eg. ``[26,immediate,noreset]``
+
+### Hiding Auto-Splitter Instructions.
+
+If you do not like the defaults for auto splitter instructions, or do not like more complex instructions showing up in your splits, you
+may try the new SubSplits layout fork which hides any instructions as described in Miscellaneous prefixed with ``AS:``. Example, a split
+named ``Bomb Clip AS:[1]`` under ``Edit Splits`` will display as ``Bomb Clip``. A split named ``Sky AS:[120,pipe]`` will display as
+``Sky``. However a split named ``WF [8]`` will still display the same because the splitter instruction is not prefixed.
+
+You can find this fork release here: https://github.com/fmichea/LiveSplit.SubsplitsFAS/releases
+
+Drop the DLL in your Components directory for livesplit, then under Layout settings, add SubSplitsFAS and configure it like
+SubSplits was configured.
 
 ## Examples
 

@@ -321,8 +321,8 @@ startup {
 	);
 
 	// Regexes used to parse clean up split name into proper groups.
-	System.Text.RegularExpressions.Regex BRACKET_TYPE1 = new System.Text.RegularExpressions.Regex(@"\[(?<values>[\w\d,=-]+)\]");
-	System.Text.RegularExpressions.Regex BRACKET_TYPE2 = new System.Text.RegularExpressions.Regex(@"\((?<values>[\w\d,=-]+)\)");
+	System.Text.RegularExpressions.Regex BRACKET_TYPE1 = new System.Text.RegularExpressions.Regex(@"(AS:)?\[(?<values>[\w\d,=-]+)\]");
+	System.Text.RegularExpressions.Regex BRACKET_TYPE2 = new System.Text.RegularExpressions.Regex(@"(AS:)?\((?<values>[\w\d,=-]+)\)");
 
 	// Flags within the splitter information (in brackets).
 	System.Text.RegularExpressions.Regex STAR_COUNT = new System.Text.RegularExpressions.Regex(@"^(?<starCount>\d+)$");
