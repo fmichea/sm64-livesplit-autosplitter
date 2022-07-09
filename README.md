@@ -222,6 +222,45 @@ To reset:
 - Under "MENU > DATA > For 0 Star", flip between OFF and DWEND. DWEND should be selected at the start of stage RTA. This resets all stars in stage.
 - Enter painting or select stage in menu, this will start the timer.
 
+# Settings
+
+> :warning: Please leave all boxes unchecked unless you know what you are doing.
+
+## General Settings
+
+### Delayed Reset
+
+When resetting the game, the timer will reset and start in two distinct events by default. To use sound effects, it is
+sometimes necessary to make those two events happen on same frame to avoid the effect from being cut-off.
+
+Enable this option if you would like timer reset to be delayed until timer start.
+
+### Start on game launch instead of logo
+
+This should basically never be checked. Timer will start by default on the first frame of the logo, which is exactly 1.33s
+from console boot on real N64. Therefore timer should be configured with 1.33s offset.
+
+If instead you would like to start on "console start" (emulator start), you may check this option, however it is highly
+recommended against, because emulation start is visibly inconsistent and will result in inconsistent timing. Only use
+if default is not working.
+
+### Disable reset after end
+
+Touching the grand star will not cause a split if on the last split. Useful only for ROM hacks.
+
+### Disable RTA Mode
+
+Enable this option to disable RTA mode, this should be unnecessary as RTA mode only activates for splits with "RTA" in category name.
+
+### Disable Bowser Reds Delayed Split
+
+By default, getting the reds star inside the bowser level will not split immediately (like normal stars without stage exit would) but instead
+waits for pipe entry before splitting. Enable this setting if you would like split to happen immediately by default.
+
+## Game Region
+
+Game Region is detected automatically, you will not have to tick this unless it fails to detect for your ROM (it wont).
+
 # Additional Notes
 
 ## Footnotes:
