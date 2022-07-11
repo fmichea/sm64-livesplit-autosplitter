@@ -38,6 +38,7 @@ Here is a list of features of this auto splitter:
 - Under ``Script Path`` select the ASL script.
 - You should now see settings in the box: **DO NOT CHANGE ANYTHING UNLESS YOU KNOW WHAT YOU ARE DOING**.
 - ``Save`` and done.
+- Remember to use an offset of 1.33s for every split file since timer starts on first logo frame (but SM64 time is measured from console start).
 
 ![Settings](./images/settings.jpg)
 
@@ -72,7 +73,7 @@ There are a few types of splits that can be defined, here are some examples:
 - Door interaction splits: split happens after a certain number of door interactions, more on this later.
 - Stage entry and exit splits: split happens when entering or exit a specific stage.
 
-A few modifiers are also available and will be explained in the more advanced format below.
+A few modifiers are also available and will be explained in the more advanced format below. Remember to use an offset of 1.33s for every split file since timer starts on first logo frame (but SM64 time is measured from console start).
 
 ## Main Format and Keywords
 
