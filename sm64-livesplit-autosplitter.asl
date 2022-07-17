@@ -42,6 +42,10 @@ state("Project64") {
 
 	byte warpDestinationJP : "Project64.exe", 0xD6A1C, 0x339EDA; // N64 addr: 0x80339ED8 + 0x4 (struct field)
 	byte warpDestinationUS : "Project64.exe", 0xD6A1C, 0x33B24A; // N64 addr: 0x8033B248 + 0x4 (struct field)
+
+	// Non-stop code writes 2400 to these addresses when enabled, changing star grab interactions.
+	ushort nonStopInteractionOverwriteJP : "Project64.exe", 0xD6A1C, 0x24DC1E; // N64 addr: 0x8024DC1C (found in Gameshark Code).
+	ushort nonStopInteractionOverwriteUS : "Project64.exe", 0xD6A1C, 0x24DDBE; // N64 addr: 0x8024DDBC (found in Gameshark Code).
 }
 
 startup {
@@ -260,6 +264,8 @@ startup {
 
 	ushort FIXED_CAMERA_HUD = 0x4;
 	ushort FIXED_CAMERA_CDOWN_HUD = 0xC;
+
+	ushort NON_STOP_OVERWRITE_VALUE = 0x2400;
 
 	// Allows defining a 3D rectangular box to checkpoint mario's position for various splitting conditions.
 	Func<byte, float, float, float, float, float, float, dynamic> create3DBox = delegate(byte stageIndex, float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -508,6 +514,10 @@ startup {
 
 	Func<dynamic, dynamic, byte> getWarpDestination = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.warpDestinationJP : state.warpDestinationUS;
+	};
+
+	Func<dynamic, dynamic, ushort> getNonStopInteractionOverwrite = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.isJapaneseVersion ? state.nonStopInteractionOverwriteJP : state.nonStopInteractionOverwriteUS;
 	};
 
 	// isIn3DBox returns true if mario is currently in the defined 3D box.
@@ -887,6 +897,9 @@ startup {
 		uint animation_old = getAnimation(varsD, oldD);
 		uint animation_current = getAnimation(varsD, currentD);
 
+		ushort nonStopInteractionOverwrite = getNonStopInteractionOverwrite(varsD, currentD);
+
+		ushort starCount_old = getStarCount(varsD, oldD);
 		ushort starCount_current = getStarCount(varsD, currentD);
 
 		ushort hudCameraMode_old = getHUDCameraMode(varsD, oldD);
@@ -948,6 +961,18 @@ startup {
 				)
 			)
 		);
+
+		// When non-stop cheat code are enabled, we split slightly differently than normal. The "normal" splitting condition
+		// is on exit stage unless immediate split is added in which case the split happens immediately when the star is grabbed.
+		bool isStarGrabConditionInNonStopMet = (
+			splitConfig.type == SPLIT_TYPE_STAR_GRAB &&
+			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE &&
+			starCount_old != starCount_current &&
+			starCount_current == splitConfig.starCountRequirement
+		);
+
+		addImmediateSplittingCondition(isStarGrabConditionInNonStopMet && splitConfig.isForcedImmediate);
+		addLevelChangeSplittingCondition(isStarGrabConditionInNonStopMet);
 
 		// When we get a star grab animation in a bowser fight stage, we got the key.
 		// FIXME:
@@ -1116,6 +1141,10 @@ startup {
 		uint defaultMusic = 0xf7f7f7f7;
 		state.musicJP = isJP ? music : defaultMusic;
 		state.musicUS = isJP ? defaultMusic : music;
+
+		ushort defaultNonStopValue = 0xf8f8;
+		state.nonStopInteractionOverwriteJP = /* isJP ? nonStopValue : */ defaultNonStopValue;
+		state.nonStopInteractionOverwriteUS = /* isJP ? */ defaultNonStopValue /* : nonStopValue */;
 
 		return state;
 	};
