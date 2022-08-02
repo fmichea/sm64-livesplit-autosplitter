@@ -1,4 +1,4 @@
-// Version: 2.3.0
+// Version: 2.3.1beta
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -43,7 +43,10 @@ state("Project64") {
 	byte warpDestinationJP : "Project64.exe", 0xD6A1C, 0x339EDA; // N64 addr: 0x80339ED8 + 0x4 (struct field)
 	byte warpDestinationUS : "Project64.exe", 0xD6A1C, 0x33B24A; // N64 addr: 0x8033B248 + 0x4 (struct field)
 
-	// Non-stop code writes 2400 to these addresses when enabled, changing star grab interactions.
+	uint fileAFlagsJP : "Project64.exe", 0xD6A1C, 0x207B08;
+	uint fileAFlagsUS : "Project64.exe", 0xD6A1C, 0x207708;
+
+	// Non-stop code writes 0/2400 to this address when enabled, changing interactions.
 	ushort nonStopInteractionOverwriteJP : "Project64.exe", 0xD6A1C, 0x24DC1E; // N64 addr: 0x8024DC1C (found in Gameshark Code).
 	ushort nonStopInteractionOverwriteUS : "Project64.exe", 0xD6A1C, 0x24DDBE; // N64 addr: 0x8024DDBC (found in Gameshark Code).
 }
@@ -181,6 +184,7 @@ startup {
 	STAGE_INDEXES[WDW_STAGE_INDEX] = true;
 	STAGE_INDEXES[WF_STAGE_INDEX] = true;
 	STAGE_INDEXES[WMOTR_STAGE_INDEX] = true;
+	STAGE_INDEXES[COTMC_STAGE_INDEX] = true;
 
 	bool[] CASTLE_STAGE_INDEXES = new bool[0x100];
 	CASTLE_STAGE_INDEXES[CASTLE_INSIDE_STAGE_INDEX] = true;
@@ -265,7 +269,10 @@ startup {
 	ushort FIXED_CAMERA_HUD = 0x4;
 	ushort FIXED_CAMERA_CDOWN_HUD = 0xC;
 
-	ushort NON_STOP_OVERWRITE_VALUE = 0x2400;
+	ushort NON_STOP_OVERWRITE_VALUE_GAMESHARK = 0x2400;
+	ushort NON_STOP_OVERWRITE_VALUE_USAMUNE = 0x0;
+
+	uint KEY_FLAGS = 0x10 | 0x20;
 
 	// Allows defining a 3D rectangular box to checkpoint mario's position for various splitting conditions.
 	Func<byte, float, float, float, float, float, float, dynamic> create3DBox = delegate(byte stageIndex, float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -394,6 +401,8 @@ startup {
 		data.previousCategoryName = "";
 		data.wantToReset = false;
 
+		data.updateCounter = (ushort) 0;
+
 		return data;
 	};
 
@@ -520,6 +529,10 @@ startup {
 		return varsD.data.isJapaneseVersion ? state.nonStopInteractionOverwriteJP : state.nonStopInteractionOverwriteUS;
 	};
 
+	Func<dynamic, dynamic, uint> getFileAFlags = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
+	};
+
 	// isIn3DBox returns true if mario is currently in the defined 3D box.
 	Func<dynamic, dynamic, dynamic, bool> isIn3DBox = delegate(dynamic varsD, dynamic currentD, dynamic box) {
 		byte stageIndex = getStageIndex(varsD, currentD);
@@ -608,9 +621,10 @@ startup {
 	int DEBUG_VARS_DUMP_SECONDS = 0;
 
 	Func<LiveSplitState, dynamic, dynamic, dynamic, dynamic, bool> updateRunCondition = delegate(LiveSplitState timerD, dynamic settingsD, dynamic varsD, dynamic oldD, dynamic currentD) {
+		varsD.data.updateCounter += 1;
+
 		// DEBUGGING: Add prints here for debugging. Every DEBUG_VARS_DUMP_SECONDS seconds.
-		uint gameRuntime_current = getGameRuntime(varsD, currentD);
-		if (DEBUG_VARS_DUMP_SECONDS != 0 && (gameRuntime_current % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
+		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
 			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
 			print(varsToString(varsD));
 		}
@@ -837,6 +851,8 @@ startup {
 
 	// parseSplitName configures splitConfig based on information within split name.
 	Action<dynamic, string> parseSplitName = delegate(dynamic varsD, string splitName) {
+		splitName = splitName.TrimStart('-');
+
 		HashSet<string> splitNameWords = splitWordsOnWhitespace(splitName);
 		dynamic splitConfig = varsD.data.splitConfig;
 
@@ -897,7 +913,14 @@ startup {
 		uint animation_old = getAnimation(varsD, oldD);
 		uint animation_current = getAnimation(varsD, currentD);
 
+		uint fileAKeysFlag_old = getFileAFlags(varsD, oldD);
+		uint fileAKeysFlag_current = getFileAFlags(varsD, currentD);
+
 		ushort nonStopInteractionOverwrite = getNonStopInteractionOverwrite(varsD, currentD);
+		bool isNonStopModeEnabled = (
+			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE_USAMUNE ||
+			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE_GAMESHARK
+		);
 
 		ushort starCount_old = getStarCount(varsD, oldD);
 		ushort starCount_current = getStarCount(varsD, currentD);
@@ -966,7 +989,7 @@ startup {
 		// is on exit stage unless immediate split is added in which case the split happens immediately when the star is grabbed.
 		bool isStarGrabConditionInNonStopMet = (
 			splitConfig.type == SPLIT_TYPE_STAR_GRAB &&
-			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE &&
+			isNonStopModeEnabled &&
 			starCount_old != starCount_current &&
 			starCount_current == splitConfig.starCountRequirement
 		);
@@ -975,7 +998,6 @@ startup {
 		addLevelChangeSplittingCondition(isStarGrabConditionInNonStopMet);
 
 		// When we get a star grab animation in a bowser fight stage, we got the key.
-		// FIXME:
 		addLevelChangeSplittingCondition(
 			splitConfig.type == SPLIT_TYPE_KEY_GRAB &&
 			animation_old != animation_current &&
@@ -984,6 +1006,13 @@ startup {
 				animation_current == ACT_JUMBO_STAR_CUTSCENE
 			 ) &&
 			isInBowserFightStage &&
+			optionalStarRequirementDone
+		);
+
+		addLevelChangeSplittingCondition(
+			splitConfig.type == SPLIT_TYPE_KEY_GRAB &&
+			isNonStopModeEnabled &&
+			fileAKeysFlag_old != fileAKeysFlag_current &&
 			optionalStarRequirementDone
 		);
 
@@ -1088,6 +1117,7 @@ startup {
 		}
 
 		// Return the result of splitting conditions check, vars are reset in onSplit to avoid duplicate splitting.
+		// FIXME: This should check actual fades using isStageFadeIn and isStageFadeOut to avoid bad VC split in 120. To test later.
 		return (
 			splitConditions.isSplittingImmediately ||
 			(splitConditions.isSplittingOnFade && stageIndex_old != stageIndex_current)
