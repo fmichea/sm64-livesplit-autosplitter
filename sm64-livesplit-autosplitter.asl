@@ -1,4 +1,4 @@
-// Version: 2.3.1beta
+// Version: 2.3.1
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -43,12 +43,28 @@ state("Project64") {
 	byte warpDestinationJP : "Project64.exe", 0xD6A1C, 0x339EDA; // N64 addr: 0x80339ED8 + 0x4 (struct field)
 	byte warpDestinationUS : "Project64.exe", 0xD6A1C, 0x33B24A; // N64 addr: 0x8033B248 + 0x4 (struct field)
 
+	// Files from gSaveBuffer, each file is 0x70 apart.
 	uint fileAFlagsJP : "Project64.exe", 0xD6A1C, 0x207B08;
 	uint fileAFlagsUS : "Project64.exe", 0xD6A1C, 0x207708;
+
+	uint fileBFlagsJP : "Project64.exe", 0xD6A1C, 0x207B78;
+	uint fileBFlagsUS : "Project64.exe", 0xD6A1C, 0x207778;
+
+	uint fileCFlagsJP : "Project64.exe", 0xD6A1C, 0x207BE8;
+	uint fileCFlagsUS : "Project64.exe", 0xD6A1C, 0x2077E8;
+
+	uint fileDFlagsJP : "Project64.exe", 0xD6A1C, 0x207C58;
+	uint fileDFlagsUS : "Project64.exe", 0xD6A1C, 0x207858;
 
 	// Non-stop code writes 0/2400 to this address when enabled, changing interactions.
 	ushort nonStopInteractionOverwriteJP : "Project64.exe", 0xD6A1C, 0x24DC1E; // N64 addr: 0x8024DC1C (found in Gameshark Code).
 	ushort nonStopInteractionOverwriteUS : "Project64.exe", 0xD6A1C, 0x24DDBE; // N64 addr: 0x8024DDBC (found in Gameshark Code).
+
+	byte menuSelectedButtonIDJP : "Project64.exe", 0xD6A1C, 0x1A7BD3; // N64 addr: 0x801A7BD0
+	byte menuSelectedButtonIDUS : "Project64.exe", 0xD6A1C, 0x1A7D13; // N64 addr: 0x801A7D10
+
+	short menuClickPosJP : "Project64.exe", 0xD6A1C, 0x1A7BE8;
+	short menuClickPosUS : "Project64.exe", 0xD6A1C, 0x1A7D28;
 }
 
 startup {
@@ -230,6 +246,7 @@ startup {
 	string DISABLE_RESET_AFTER_END = "disableResetAfterEnd";
 	string DISABLE_RTA_MODE = "disableRTAMode";
 	string DISABLE_BOWSER_REDS_DELAYED_SPLIT = "disableBowserRedsDelayedSplit";
+	string DISABLE_AUTO_START_ON_FILE_D = "disableAutoStartOnFileD";
 
 	// Splitting time is controlled depending on the type of split this is.
 	int SPLIT_TYPE_MANUAL = -1;
@@ -396,6 +413,7 @@ startup {
 		data.isJapaneseVersion = false;
 		data.isRTAMode = false;
 		data.isBlindfoldedMode = false;
+		data.selectedFileID = -1;
 
 		data.previousStage = 0;
 		data.previousCategoryName = "";
@@ -432,6 +450,7 @@ startup {
 		settingsD.disableResetAfterEnd = false;
 		settingsD.disableRTAMode = false;
 		settingsD.disableBowserRedsDelayedSplit = false;
+		settingsD.disableAutoStartOnFileD = false;
 
 		return settingsD;
 	};
@@ -462,6 +481,8 @@ startup {
 		result += "\n";
 		result += string.Format("    varsD.data.isJapaneseVersion = {0}\n", varsD.data.isJapaneseVersion);
 		result += string.Format("    varsD.data.isRTAMode = {0}\n", varsD.data.isRTAMode);
+		result += string.Format("    varsD.data.isBlindfoldedMode = {0}\n", varsD.data.isBlindfoldedMode);
+		result += string.Format("    varsD.data.selectedFileID = {0}\n", varsD.data.selectedFileID);
 		result += string.Format("    varsD.data.previousStage = {0}\n", varsD.data.previousStage);
 		result += string.Format("    varsD.data.previousCategoryName = {0}\n", varsD.data.previousCategoryName);
 		result += "\n";
@@ -472,6 +493,7 @@ startup {
 		result += string.Format("    varsD.settings.currentSplitName = {0}\n", varsD.settings.currentSplitName);
 		result += string.Format("    varsD.settings.splitCount = {0}\n", varsD.settings.splitCount);
 		result += string.Format("    varsD.settings.forceLaunchOnStart = {0}\n", varsD.settings.forceLaunchOnStart);
+		result += string.Format("    varsD.settings.disableAutoStartOnFileD = {0}\n", varsD.settings.disableAutoStartOnFileD);
 		result += string.Format("    varsD.settings.forceJPGameVersion = {0}\n", varsD.settings.forceJPGameVersion);
 		result += string.Format("    varsD.settings.forceUSGameVersion = {0}\n", varsD.settings.forceUSGameVersion);
 		result += string.Format("    varsD.settings.disableResetAfterEnd = {0}\n", varsD.settings.disableResetAfterEnd);
@@ -529,8 +551,25 @@ startup {
 		return varsD.data.isJapaneseVersion ? state.nonStopInteractionOverwriteJP : state.nonStopInteractionOverwriteUS;
 	};
 
-	Func<dynamic, dynamic, uint> getFileAFlags = delegate(dynamic varsD, dynamic state) {
-		return varsD.data.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
+	Func<dynamic, dynamic, uint> getFileFlags = delegate(dynamic varsD, dynamic state) {
+		if (varsD.data.selectedFileID == 0) {
+			return varsD.data.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
+		} else if (varsD.data.selectedFileID == 1) {
+			return varsD.data.isJapaneseVersion ? state.fileBFlagsJP : state.fileBFlagsUS;
+		} else if (varsD.data.selectedFileID == 2) {
+			return varsD.data.isJapaneseVersion ? state.fileCFlagsJP : state.fileCFlagsUS;
+		} else if (varsD.data.selectedFileID == 3) {
+			return varsD.data.isJapaneseVersion ? state.fileDFlagsJP : state.fileDFlagsUS;
+		}
+		return 0;
+	};
+
+	Func<dynamic, dynamic, byte> getMenuSelectedButtonID = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.isJapaneseVersion ? state.menuSelectedButtonIDJP : state.menuSelectedButtonIDUS;
+	};
+
+	Func<dynamic, dynamic, short> getMenuClickPos = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.isJapaneseVersion ? state.menuClickPosJP : state.menuClickPosUS;
 	};
 
 	// isIn3DBox returns true if mario is currently in the defined 3D box.
@@ -621,13 +660,13 @@ startup {
 	int DEBUG_VARS_DUMP_SECONDS = 0;
 
 	Func<LiveSplitState, dynamic, dynamic, dynamic, dynamic, bool> updateRunCondition = delegate(LiveSplitState timerD, dynamic settingsD, dynamic varsD, dynamic oldD, dynamic currentD) {
-		varsD.data.updateCounter += 1;
-
 		// DEBUGGING: Add prints here for debugging. Every DEBUG_VARS_DUMP_SECONDS seconds.
 		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
 			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
 			print(varsToString(varsD));
 		}
+
+		varsD.data.updateCounter += 1;
 
 		// Copy settings to var to help with testing.
 		varsD.settings.isResetEnabled = settingsD.ResetEnabled;
@@ -645,6 +684,7 @@ startup {
 		varsD.settings.disableResetAfterEnd = settingsD[DISABLE_RESET_AFTER_END];
 		varsD.settings.disableRTAMode = settingsD[DISABLE_RTA_MODE];
 		varsD.settings.disableBowserRedsDelayedSplit = settingsD[DISABLE_BOWSER_REDS_DELAYED_SPLIT];
+		varsD.settings.disableAutoStartOnFileD = settingsD[DISABLE_AUTO_START_ON_FILE_D];
 
 		// Call inner update logic.
 		return updateRunConditionInner(varsD, oldD, currentD);
@@ -666,6 +706,11 @@ startup {
 		uint music_old = getMusicTrack(varsD, oldD);
 		uint music_current = getMusicTrack(varsD, currentD);
 
+		byte menuSelectedButtonID_old = getMenuSelectedButtonID(varsD, oldD);
+		byte menuSelectedButtonID_current = getMenuSelectedButtonID(varsD, currentD);
+
+		short menuClickPos_current = getMenuClickPos(varsD, currentD);
+
 		// First frame of the logo appears on frame 4 (1.33s after launch).
 		if (!varsD.settings.forceLaunchOnStart && globalTimer_current == 4) {
 			return true;
@@ -673,6 +718,19 @@ startup {
 
 		// As soon as game is relaunched if option is selected, quite inconsistent time-wise.
 		if (varsD.settings.forceLaunchOnStart && stageIndex_current == 1 && gameRuntime_current < gameRuntime_old) {
+			return true;
+		}
+
+		// When a file is selected on the main menu, timer also starts.
+		if (
+			menuSelectedButtonID_old != menuSelectedButtonID_current &&
+			menuSelectedButtonID_old == 255 &&
+			0 <= menuSelectedButtonID_current &&
+			menuSelectedButtonID_current < 4 &&
+			(menuSelectedButtonID_current != 3 || !varsD.settings.disableAutoStartOnFileD) &&
+			menuClickPos_current == -10000
+		) {
+			varsD.data.selectedFileID = (int) menuSelectedButtonID_current;
 			return true;
 		}
 
@@ -701,6 +759,7 @@ startup {
 	// onResetRunCondition ensures important variable re-initialization always happens after reset.
 	Action<dynamic> onResetRunCondition = delegate(dynamic varsD) {
 		varsD.data.lastSplitIndex = -1;
+		varsD.data.selectedFileID = -1;
 		varsD.data.previousStage = 0;
 		varsD.data.wantToReset = false;
 	};
@@ -913,10 +972,11 @@ startup {
 		uint animation_old = getAnimation(varsD, oldD);
 		uint animation_current = getAnimation(varsD, currentD);
 
-		uint fileAKeysFlag_old = getFileAFlags(varsD, oldD);
-		uint fileAKeysFlag_current = getFileAFlags(varsD, currentD);
+		uint fileKeysFlag_old = getFileFlags(varsD, oldD) & KEY_FLAGS;
+		uint fileKeysFlag_current = getFileFlags(varsD, currentD) & KEY_FLAGS;
 
 		ushort nonStopInteractionOverwrite = getNonStopInteractionOverwrite(varsD, currentD);
+
 		bool isNonStopModeEnabled = (
 			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE_USAMUNE ||
 			nonStopInteractionOverwrite == NON_STOP_OVERWRITE_VALUE_GAMESHARK
@@ -1012,7 +1072,7 @@ startup {
 		addLevelChangeSplittingCondition(
 			splitConfig.type == SPLIT_TYPE_KEY_GRAB &&
 			isNonStopModeEnabled &&
-			fileAKeysFlag_old != fileAKeysFlag_current &&
+			fileKeysFlag_old != fileKeysFlag_current &&
 			optionalStarRequirementDone
 		);
 
@@ -1176,6 +1236,14 @@ startup {
 		state.nonStopInteractionOverwriteJP = /* isJP ? nonStopValue : */ defaultNonStopValue;
 		state.nonStopInteractionOverwriteUS = /* isJP ? */ defaultNonStopValue /* : nonStopValue */;
 
+		byte defaultMenuSelectedButtonID = 0xf9;
+		state.menuSelectedButtonIDJP = defaultMenuSelectedButtonID;
+		state.menuSelectedButtonIDUS = defaultMenuSelectedButtonID;
+
+		short defaultMenuClickPos = 0xfa;
+		state.menuClickPosJP = defaultMenuClickPos;
+		state.menuClickPosUS = defaultMenuClickPos;
+
 		return state;
 	};
 
@@ -1308,6 +1376,7 @@ startup {
 	settings.Add("generalSettings", true, "General Settings", "expertMode");
 	settings.Add(USE_DELAYED_RESET, false, "Delay reset of timer until restart (default: timer reset and start are separate events).", "generalSettings");
 	settings.Add(LAUNCH_ON_START, false, "Start on game launch instead of logo first frame (logo is more consistent, at 1.33s offset)", "generalSettings");
+	settings.Add(DISABLE_AUTO_START_ON_FILE_D, false, "Disable automatic start start on file D select.", "generalSettings");
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
 	settings.Add(DISABLE_RTA_MODE, false, "Disable stage RTA mode.", "generalSettings");
 	settings.Add(DISABLE_BOWSER_REDS_DELAYED_SPLIT, false, "Disable bowser reds delayed split (default: split on pipe entry)", "generalSettings");
