@@ -1177,10 +1177,9 @@ startup {
 		}
 
 		// Return the result of splitting conditions check, vars are reset in onSplit to avoid duplicate splitting.
-		// FIXME: This should check actual fades using isStageFadeIn and isStageFadeOut to avoid bad VC split in 120. To test later.
 		return (
 			splitConditions.isSplittingImmediately ||
-			(splitConditions.isSplittingOnFade && stageIndex_old != stageIndex_current)
+			(splitConditions.isSplittingOnFade && (isStageFadeIn(stageIndex_old, stageIndex_current) || isStageFadeOut(stageIndex_old, stageIndex_current)))
 		);
 	};
 
