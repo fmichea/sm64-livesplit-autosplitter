@@ -603,7 +603,8 @@ startup {
 			stageIndex_old != stageIndex_current &&
 			(
 				(STAGE_INDEXES[stageIndex_old] && CASTLE_STAGE_INDEXES[stageIndex_current]) ||
-				(STAGE_INDEXES[stageIndex_old] && BOWSER_FIGHT_STAGE_INDEXES[stageIndex_current])
+				(STAGE_INDEXES[stageIndex_old] && BOWSER_FIGHT_STAGE_INDEXES[stageIndex_current]) ||
+				(BOWSER_FIGHT_STAGE_INDEXES[stageIndex_old] && CASTLE_STAGE_INDEXES[stageIndex_current])
 			)
 		);
 	};
