@@ -108,12 +108,6 @@ startup {
 		"rta",
 	};
 
-	// BLINDFOLDED_CATEGORY_KEYWORDS: Detection of categories related to blindfolded speedrunning, where automatic
-	//    reset is disabled by default.
-	string[] BLINDFOLDED_CATEGORY_KEYWORDS = new string[]{
-		"blindfolded",
-	};
-
 	// ********** USER_CUSTOMIZATION_END **********
 
 	Func<string, string> toLower = delegate(string value) {
@@ -128,7 +122,6 @@ startup {
 	HashSet<string> BOWSER_STAGE_KEYWORDS_SET = buildKeywordsSet(BOWSER_STAGE_KEYWORDS);
 	HashSet<string> KEY_UNLOCK_KEYWORDS_SET = buildKeywordsSet(KEY_UNLOCK_KEYWORDS);
 	HashSet<string> RTA_CATEGORY_KEYWORDS_SET = buildKeywordsSet(RTA_CATEGORY_KEYWORDS);
-	HashSet<string> BLINDFOLDED_CATEGORY_KEYWORDS_SET = buildKeywordsSet(BLINDFOLDED_CATEGORY_KEYWORDS);
 
 	byte BOB_STAGE_INDEX = 9;
 	byte CCM_STAGE_INDEX = 5;
@@ -242,7 +235,6 @@ startup {
 	string GAME_VERSION_US = "gameVersionUS";
 
 	string LAUNCH_ON_START = "launchOnStart";
-	string USE_DELAYED_RESET = "useDelayedReset";
 	string DISABLE_RESET_AFTER_END = "disableResetAfterEnd";
 	string DISABLE_RTA_MODE = "disableRTAMode";
 	string DISABLE_BOWSER_REDS_DELAYED_SPLIT = "disableBowserRedsDelayedSplit";
@@ -412,12 +404,12 @@ startup {
 
 		data.isJapaneseVersion = false;
 		data.isRTAMode = false;
-		data.isBlindfoldedMode = false;
 		data.selectedFileID = -1;
 
 		data.previousStage = 0;
 		data.previousCategoryName = "";
 		data.wantToReset = false;
+		data.wantToResetTiming = 0;
 
 		data.updateCounter = (ushort) 0;
 
@@ -444,7 +436,6 @@ startup {
 		settingsD.currentSplitName = "";
 		settingsD.splitCount = 0;
 		settingsD.forceLaunchOnStart = false;
-		settingsD.useDelayedReset = false;
 		settingsD.forceJPGameVersion = false;
 		settingsD.forceUSGameVersion = false;
 		settingsD.disableResetAfterEnd = false;
@@ -481,7 +472,6 @@ startup {
 		result += "\n";
 		result += string.Format("    varsD.data.isJapaneseVersion = {0}\n", varsD.data.isJapaneseVersion);
 		result += string.Format("    varsD.data.isRTAMode = {0}\n", varsD.data.isRTAMode);
-		result += string.Format("    varsD.data.isBlindfoldedMode = {0}\n", varsD.data.isBlindfoldedMode);
 		result += string.Format("    varsD.data.selectedFileID = {0}\n", varsD.data.selectedFileID);
 		result += string.Format("    varsD.data.previousStage = {0}\n", varsD.data.previousStage);
 		result += string.Format("    varsD.data.previousCategoryName = {0}\n", varsD.data.previousCategoryName);
@@ -564,6 +554,10 @@ startup {
 		return 0;
 	};
 
+	Func<dynamic, dynamic, uint> getFileAFlags = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
+	};
+
 	Func<dynamic, dynamic, byte> getMenuSelectedButtonID = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.isJapaneseVersion ? state.menuSelectedButtonIDJP : state.menuSelectedButtonIDUS;
 	};
@@ -623,7 +617,6 @@ startup {
 			HashSet<string> categoryNameWords = splitWordsOnWhitespace(categoryName.ToLower());
 
 			varsD.data.isRTAMode = categoryNameWords.Overlaps(RTA_CATEGORY_KEYWORDS_SET);
-			varsD.data.isBlindfoldedMode = categoryNameWords.Overlaps(BLINDFOLDED_CATEGORY_KEYWORDS_SET);
 			varsD.data.previousCategoryName = categoryName;
 		}
 	};
@@ -648,7 +641,6 @@ startup {
 		if (
 			varsD.settings.isResetEnabled &&
 			varsD.settings.currentTimerPhase == TimerPhase.Ended &&
-			!varsD.data.isBlindfoldedMode &&
 			!varsD.settings.disableResetAfterEnd &&
 			varsD.functions.resetRunCondition(varsD, oldD, currentD)
 		) {
@@ -665,6 +657,7 @@ startup {
 		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
 			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
 			print(varsToString(varsD));
+			print(string.Format("File A flags: {0:x}", getFileAFlags(varsD, currentD)));
 		}
 
 		varsD.data.updateCounter += 1;
@@ -679,7 +672,6 @@ startup {
 		}
 		varsD.settings.splitCount = timerD.Run.Count;
 		varsD.settings.forceLaunchOnStart = settingsD[LAUNCH_ON_START];
-		varsD.settings.useDelayedReset = settingsD[USE_DELAYED_RESET];
 		varsD.settings.forceJPGameVersion = settingsD[GAME_VERSION_JP];
 		varsD.settings.forceUSGameVersion = settingsD[GAME_VERSION_US];
 		varsD.settings.disableResetAfterEnd = settingsD[DISABLE_RESET_AFTER_END];
@@ -763,23 +755,13 @@ startup {
 		varsD.data.selectedFileID = -1;
 		varsD.data.previousStage = 0;
 		varsD.data.wantToReset = false;
+		varsD.data.wantToResetTiming = 0;
 	};
 
 	// resetRunCondition determines if run should be reset, stopping the timer and resetting it to its initial value.
 	Func<dynamic, dynamic, dynamic, bool> resetRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
-
-		// When playing in blindfolded mode, reset is fully disabled.
-		if (varsD.data.isBlindfoldedMode) {
-			return false;
-		}
-
-		// When split is marked as no reset, reset conditions are ignored, unless a reset happens twice within
-		// NO_RESET_SECONDS_LEEWAY number of seconds (when greater than 0). In this case reset does happen.
-		if (varsD.data.splitConfig.isNoReset && (NO_RESET_SECONDS_LEEWAY == 0 || (NO_RESET_SECONDS_LEEWAY * 60) < gameRuntime_old)) {
-			return false;
-		}
 
 		byte stageIndex_current = getStageIndex(varsD, currentD);
 
@@ -791,19 +773,38 @@ startup {
 			gameRuntime_current < gameRuntime_old
 		);
 
+		if (isResetGame && !varsD.data.wantToReset) {
+			varsD.data.wantToReset = true;
+			varsD.data.wantToResetTiming = gameRuntime_old;
+		}
+
 		bool isResetRTA = (
 			!vars.settings.disableRTAMode &&
 			varsD.data.isRTAMode &&
 			starCount_current < starCount_old
 		);
 
-		varsD.data.wantToReset = varsD.data.wantToReset || isResetGame;
+		bool isReset = isResetRTA;
 
-		if (
-			isResetRTA ||
-			(isResetGame && !varsD.settings.useDelayedReset) ||
-			(varsD.settings.useDelayedReset && varsD.data.wantToReset && startRunCondition(varsD, oldD, currentD))
-		) {
+		if (varsD.data.wantToReset && startRunCondition(varsD, oldD, currentD)) {
+			bool isNoReset = (
+				varsD.data.splitConfig.isNoReset ||
+				getFileAFlags(varsD, currentD) != 0
+			);
+
+			// When split is marked as no reset, reset conditions are ignored, unless a reset happens twice within
+			// NO_RESET_SECONDS_LEEWAY number of seconds (when greater than 0). In this case reset does happen.
+			if (isNoReset && (NO_RESET_SECONDS_LEEWAY == 0 || (NO_RESET_SECONDS_LEEWAY * 60) < vars.data.wantToResetTiming)) {
+				vars.data.wantToReset = false;
+				vars.data.wantToResetTiming = 0;
+			} else {
+				isReset = true;
+			}
+
+			print(string.Format("[reset] File A flags: {0:x} - isNoReset: {1} - isReset: {2} - isResetRTA: {3}", getFileAFlags(varsD, currentD), isNoReset, isReset, isResetRTA));
+		}
+
+		if (isReset) {
 			onResetRunCondition(varsD);
 			return true;
 		}
@@ -1244,6 +1245,10 @@ startup {
 		state.menuClickPosJP = defaultMenuClickPos;
 		state.menuClickPosUS = defaultMenuClickPos;
 
+		uint defaultFileAMagic = 0x00000000;
+		state.fileAFlagsJP = defaultFileAMagic;
+		state.fileAFlagsUS = defaultFileAMagic;
+
 		return state;
 	};
 
@@ -1374,7 +1379,6 @@ startup {
 	settings.Add("expertMode", false, "MANUAL/EXPERT MODE (I know what I'm doing)");
 
 	settings.Add("generalSettings", true, "General Settings", "expertMode");
-	settings.Add(USE_DELAYED_RESET, false, "Delay reset of timer until restart (default: timer reset and start are separate events).", "generalSettings");
 	settings.Add(LAUNCH_ON_START, false, "Start on game launch instead of logo first frame (logo is more consistent, at 1.33s offset)", "generalSettings");
 	settings.Add(DISABLE_AUTO_START_ON_FILE_D, false, "Disable automatic start start on file D select.", "generalSettings");
 	settings.Add(DISABLE_RESET_AFTER_END, false, "Disable timer reset after game end (final star grab)", "generalSettings");
