@@ -247,9 +247,9 @@ startup {
 	int SPLIT_TYPE_MIPS_CLIP = 4;
 	int SPLIT_TYPE_STAR_GRAB = 5;
 	int SPLIT_TYPE_STAR_DOOR_ENTRY = 6;
-
 	int SPLIT_TYPE_STAGE_ENTRY = 7;
 	int SPLIT_TYPE_STAGE_EXIT = 8;
+	int SPLIT_TYPE_FINAL_STAR_GRAB = 9;
 
 	// Constant values used within the code.
 	uint ACT_STAR_DANCE_EXIT = 0x1302;
@@ -807,6 +807,10 @@ startup {
 		case "mips":
 			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
 			break;
+
+		case "final-star-grab":
+			splitConfig.type = SPLIT_TYPE_FINAL_STAR_GRAB;
+			break;
 		};
 	};
 
@@ -1142,7 +1146,10 @@ startup {
 
 		// This is the last split and we are getting the last star, split immediately.
 		addImmediateSplittingCondition(
-			varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1 &&
+			(
+				splitConfig.type == SPLIT_TYPE_FINAL_STAR_GRAB ||
+				varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1
+			) &&
 			animation_old != animation_current &&
 			animation_current == ACT_JUMBO_STAR_CUTSCENE
 		);
