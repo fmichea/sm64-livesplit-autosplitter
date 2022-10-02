@@ -68,14 +68,26 @@ state("Project64") {
 }
 
 startup {
+	Func<string[], List<string[]>> buildKeywords = delegate(string[] phrases) {
+		List<string[]> result = new List<string[]>();
+
+		foreach (string phrase in phrases) {
+			string[] words = phrase.Split(' ');
+			result.Add(words);
+		}
+
+		return result;
+	};
+
 	// ********** USER_CUSTOMIZATION_BEGIN **********
 	//
 	// This auto-splitter uses certain keywords in split names in order to detect special types of splits. Each
 	// is explained here. Some rules:
 	//
 	//     - You may only modify this part of the code to add your own keywords and maintain upstream support.
-	//     - Keywords are case incensitive, they must always match a full word (eg. "dw" will match "dw (9)" but not "wdw (39)").
+	//     - Keywords must be lowercase below, but they will match all cases, they must always match a full word (eg. "dw" will match "dw (9)" but not "wdw (39)").
 	//     - Keywords may only be alpha-numeric values (no special characters).
+	//     - You may include a phrase instead of a word, it will then match all cases/spacing of that phrase. (eg. "mips clip" matches "MipS    Clip")
 	//
 	// Please note that these changes will apply to all of your splits. Remember to port any changes you make to
 	// new version whenever updating this script.
@@ -85,43 +97,29 @@ startup {
 	int NO_RESET_SECONDS_LEEWAY = 3;
 
 	// BOWSER_FIGHT_KEYWORDS: Any split name containing these keywords will split only once bowser fight is won.
-	string[] BOWSER_FIGHT_KEYWORDS = new string[]{
+	List<string[]> BOWSER_FIGHT_KEYWORDS = buildKeywords(new string[] {
 		"bowser",
 		"key",
-	};
+	});
 
 	// BOWSER_STAGE_KEYWORDS: Any split name containing one of these keywords will split on pipe entry within bowser
 	//    stages (dark world, fire sea, sky).
-	string[] BOWSER_STAGE_KEYWORDS = new string[] {
+	List<string[]> BOWSER_STAGE_KEYWORDS = buildKeywords(new string[] {
 		"pipe",
-	};
+	});
 
 	// KEY_UNLOCK_KEYWORDS: Any split name containing these keywords will split only once a key door is unlocked.
-	string[] KEY_UNLOCK_KEYWORDS = new string[]{
+	List<string[]> KEY_UNLOCK_KEYWORDS = buildKeywords(new string[] {
 		"upstairs",
 		"basement",
-	};
+	});
 
-	// RTA_CATEGORY_KEYWORDS: Use in category name to enable RTA mode where more reset and start condition are available
-	//    to facilitate RTA practice with timer on USAMUNE.
-	string[] RTA_CATEGORY_KEYWORDS = new string[]{
-		"rta",
-	};
+	// MIPS_CLIP_KEYWORDS:
+	List<string[]> MIPS_CLIP_KEYWORDS = buildKeywords(new string[] {
+		"mips clip",
+	});
 
 	// ********** USER_CUSTOMIZATION_END **********
-
-	Func<string, string> toLower = delegate(string value) {
-		return value.ToLower();
-	};
-
-	Func<string[], HashSet<string>> buildKeywordsSet = delegate(string[] values) {
-		return new HashSet<string>(values.Select(toLower));
-	};
-
-	HashSet<string> BOWSER_FIGHT_KEYWORDS_SET = buildKeywordsSet(BOWSER_FIGHT_KEYWORDS);
-	HashSet<string> BOWSER_STAGE_KEYWORDS_SET = buildKeywordsSet(BOWSER_STAGE_KEYWORDS);
-	HashSet<string> KEY_UNLOCK_KEYWORDS_SET = buildKeywordsSet(KEY_UNLOCK_KEYWORDS);
-	HashSet<string> RTA_CATEGORY_KEYWORDS_SET = buildKeywordsSet(RTA_CATEGORY_KEYWORDS);
 
 	byte BOB_STAGE_INDEX = 9;
 	byte CCM_STAGE_INDEX = 5;
@@ -353,9 +351,6 @@ startup {
 	System.Text.RegularExpressions.Regex STAR_DOOR = new System.Text.RegularExpressions.Regex(@"^star-door=(?<starCount>(8|30|50|70))$");
 	System.Text.RegularExpressions.Regex MODE = new System.Text.RegularExpressions.Regex(@"^mode=(?<modeName>(romhack|rta))$");
 
-	// Special
-	System.Text.RegularExpressions.Regex MIPS_CLIP = new System.Text.RegularExpressions.Regex(@"(?i)mips\s+clip");
-
 	// TODO(#6): AutoSplitter64 compatibility
 	// System.Text.RegularExpressions.Regex XCAM_COUNT = new System.Text.RegularExpressions.Regex(@"^xcam=(?<count>\d+)$");
 	// System.Text.RegularExpressions.Regex DOOR_XCAM_COUNT = new System.Text.RegularExpressions.Regex(@"^door-xcam=(?<count>\d+)$");
@@ -396,6 +391,18 @@ startup {
 		return data;
 	};
 
+	Func<ExpandoObject> initRunLiveData = delegate() {
+		dynamic data = new ExpandoObject();
+
+		data.previousStage = 0;
+		data.selectedFileID = -1;
+
+		data.wantToReset = false;
+		data.wantToResetTiming = 0;
+
+		return data;
+	};
+
 	Func<ExpandoObject> initRunConfigData = delegate() {
 		dynamic data = new ExpandoObject();
 
@@ -403,12 +410,8 @@ startup {
 		data.isRTAMode = false;
 		data.relaxedFadeMatch = false;
 
-		data.lastSplitIndex = -1;
-		data.selectedFileID = -1;
-		data.previousStage = 0;
-
-		data.wantToReset = false;
-		data.wantToResetTiming = 0;
+		data.lastSplitName = "";
+		data.lastFirstSplitName = "";
 
 		return data;
 	};
@@ -418,18 +421,25 @@ startup {
 
 		data.splitConfig = initSplitConfigData();
 		data.splitConditions = initSplitConditionsData();
+		data.runLiveData = initRunLiveData();
 		data.runConfig = initRunConfigData();
 
-		data.updateCounter = (ushort) 0;
+		data.updateCounter = (uint) 0;
 
 		return data;
 	};
 
 	// resetVarsDataForSplitChange re-initializes configuration related to split.
-	Action<dynamic, int> resetVarsDataForSplitChange = delegate(dynamic varsD, int lastSplitIndex) {
-		varsD.data.runConfig.lastSplitIndex = lastSplitIndex;
+	Action<dynamic, string> resetVarsDataForSplitChange = delegate(dynamic varsD, string splitName) {
 		varsD.data.splitConfig = initSplitConfigData();
 		varsD.data.splitConditions = initSplitConditionsData();
+		varsD.data.runConfig.lastSplitName = splitName;
+	};
+
+	// resetVarsDataForFirstSplitChange re-initializes configuration related to run configuration.
+	Action<dynamic, string> resetVarsDataForFirstSplitChange = delegate(dynamic varsD, string splitName) {
+		varsD.data.runConfig = initRunConfigData();
+		varsD.data.runConfig.lastFirstSplitName = splitName;
 	};
 
 	vars.data = initVarsData();
@@ -441,7 +451,6 @@ startup {
 		settingsD.isResetEnabled = false;
 		settingsD.currentTimerPhase = TimerPhase.NotRunning;
 		settingsD.currentSplitIndex = -1;
-		settingsD.currentSplitName = "";
 		settingsD.splitCount = 0;
 		settingsD.forceLaunchOnStart = false;
 		settingsD.forceJPGameVersion = false;
@@ -460,8 +469,8 @@ startup {
 	Func<dynamic, string> varsToString = delegate(dynamic varsD) {
 		string result = "";
 
-		result += "\n";
-		result += "\n";
+		result += "\n\n";
+		result += string.Format("    varsD.data.splitConfig.type = {0}\n", varsD.data.splitConfig.type);
 		result += string.Format("    varsD.data.splitConfig.starCountRequirement = {0}\n", varsD.data.splitConfig.starCountRequirement);
 		result += string.Format("    varsD.data.splitConfig.entryStageID = {0}\n", varsD.data.splitConfig.entryStageID);
 		result += string.Format("    varsD.data.splitConfig.exitStageID = {0}\n", varsD.data.splitConfig.exitStageID);
@@ -469,7 +478,6 @@ startup {
 		result += string.Format("    varsD.data.splitConfig.isNoReset = {0}\n", varsD.data.splitConfig.isNoReset);
 		result += string.Format("    varsD.data.splitConfig.isForcedFade = {0}\n", varsD.data.splitConfig.isForcedFade);
 		result += string.Format("    varsD.data.splitConfig.isForcedImmediate = {0}\n", varsD.data.splitConfig.isForcedImmediate);
-		result += string.Format("    varsD.data.splitConfig.type = {0}\n", varsD.data.splitConfig.type);
 		result += "\n";
 		// TODO(#6): AutoSplitter64 compatibility
 		// result += string.Format("    varsD.data.splitConditions.doorXCamCount = {0}\n", varsD.data.splitConditions.doorXCamCount);
@@ -480,18 +488,17 @@ startup {
 		result += string.Format("    varsD.data.runConfig.isJapaneseVersion = {0}\n", varsD.data.runConfig.isJapaneseVersion);
 		result += string.Format("    varsD.data.runConfig.isRTAMode = {0}\n", varsD.data.runConfig.isRTAMode);
 		result += string.Format("    varsD.data.runConfig.relaxedFadeMatch = {0}\n", varsD.data.runConfig.relaxedFadeMatch);
+		result += string.Format("    varsD.data.runConfig.lastSplitName = {0}\n", varsD.data.runConfig.lastSplitName);
+		result += string.Format("    varsD.data.runConfig.lastFirstSplitName = {0}\n", varsD.data.runConfig.lastFirstSplitName);
 		result += "\n";
-		result += string.Format("    varsD.data.runConfig.lastSplitIndex = {0}\n", varsD.data.runConfig.lastSplitIndex);
-		result += string.Format("    varsD.data.runConfig.selectedFileID = {0}\n", varsD.data.runConfig.selectedFileID);
-		result += string.Format("    varsD.data.runConfig.previousStage = {0}\n", varsD.data.runConfig.previousStage);
-		result += "\n";
-		result += string.Format("    varsD.data.runConfig.wantToReset = {0}\n", varsD.data.runConfig.wantToReset);
-		result += string.Format("    varsD.data.runConfig.wantToResetTiming = {0}\n", varsD.data.runConfig.wantToResetTiming);
+		result += string.Format("    varsD.data.runLiveData.selectedFileID = {0}\n", varsD.data.runLiveData.selectedFileID);
+		result += string.Format("    varsD.data.runLiveData.previousStage = {0}\n", varsD.data.runLiveData.previousStage);
+		result += string.Format("    varsD.data.runLiveData.wantToReset = {0}\n", varsD.data.runLiveData.wantToReset);
+		result += string.Format("    varsD.data.runLiveData.wantToResetTiming = {0}\n", varsD.data.runLiveData.wantToResetTiming);
 		result += "\n";
 		result += string.Format("    varsD.settings.isResetEnabled = {0}\n", varsD.settings.isResetEnabled);
 		result += string.Format("    varsD.settings.currentTimerPhase = {0}\n", varsD.settings.currentTimerPhase);
 		result += string.Format("    varsD.settings.currentSplitIndex = {0}\n", varsD.settings.currentSplitIndex);
-		result += string.Format("    varsD.settings.currentSplitName = {0}\n", varsD.settings.currentSplitName);
 		result += string.Format("    varsD.settings.splitCount = {0}\n", varsD.settings.splitCount);
 		result += string.Format("    varsD.settings.forceLaunchOnStart = {0}\n", varsD.settings.forceLaunchOnStart);
 		result += string.Format("    varsD.settings.disableAutoStartOnFileD = {0}\n", varsD.settings.disableAutoStartOnFileD);
@@ -553,13 +560,13 @@ startup {
 	};
 
 	Func<dynamic, dynamic, uint> getFileFlags = delegate(dynamic varsD, dynamic state) {
-		if (varsD.data.runConfig.selectedFileID == 0) {
+		if (varsD.data.runLiveData.selectedFileID == 0) {
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
-		} else if (varsD.data.runConfig.selectedFileID == 1) {
+		} else if (varsD.data.runLiveData.selectedFileID == 1) {
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileBFlagsJP : state.fileBFlagsUS;
-		} else if (varsD.data.runConfig.selectedFileID == 2) {
+		} else if (varsD.data.runLiveData.selectedFileID == 2) {
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileCFlagsJP : state.fileCFlagsUS;
-		} else if (varsD.data.runConfig.selectedFileID == 3) {
+		} else if (varsD.data.runLiveData.selectedFileID == 3) {
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileDFlagsJP : state.fileDFlagsUS;
 		}
 		return 0;
@@ -615,8 +622,197 @@ startup {
 	};
 
 	// splitWordsOnWhitespace returns all unique words from text.
-	Func<string, HashSet<string>> splitWordsOnWhitespace = delegate(string text) {
-		return new HashSet<string>(System.Text.RegularExpressions.Regex.Split(text, @"\s+"));
+	Func<string, string[]> splitWordsOnWhitespace = delegate(string text) {
+		return System.Text.RegularExpressions.Regex.Split(text, @"\s+");
+	};
+
+	// parseStageID takes the id within entry=* and exit=* format, and returns the id as a byte.
+	Func<string, byte> parseStageID = delegate(string stageID) {
+		if (STAGE_NAMES_TO_INDEX.ContainsKey(stageID)) {
+			return STAGE_NAMES_TO_INDEX[stageID];
+		} else {
+			try {
+				return ((byte) Convert.ToInt32(stageID));
+			} catch (Exception e) {
+				print(string.Format("The value {0} is not in a recognizable stageID format (number or recognizable stage name): {1}", stageID, e));
+				return ((byte) 0xff);
+			}
+		}
+	};
+
+	// parseStarDoorID taks the id within star-door=* format, and returns the id as a byte.
+	Func<string, ushort> parseStarDoorID = delegate(string starCount) {
+		return ((ushort) Convert.ToInt32(starCount));
+	};
+
+	// parseSplitNameForAction is an helper function to make it easier to implement instructions
+	// parser inside of split names.
+	Action<dynamic, string, Action<dynamic, dynamic, string[]>, Action<dynamic, dynamic, string>> parseSplitNameForAction = delegate(dynamic varsD, string splitName, Action<dynamic, dynamic, string[]> parseWords, Action<dynamic, dynamic, string> parseInstructions) {
+		splitName = splitName.TrimStart('-');
+
+		string[] splitNameWords = splitWordsOnWhitespace(splitName);
+
+		dynamic splitConfig = varsD.data.splitConfig;
+		dynamic runConfig = varsD.data.runConfig;
+
+		if (parseWords != null) {
+			parseWords(runConfig, splitConfig, splitNameWords);
+		}
+
+		System.Text.RegularExpressions.MatchCollection splitterInstructions1 = BRACKET_TYPE1.Matches(splitName);
+		foreach (System.Text.RegularExpressions.Match match in splitterInstructions1) {
+			foreach (string val in match.Groups["values"].Value.Split(',')) {
+				parseInstructions(runConfig, splitConfig, val);
+			}
+		}
+
+		System.Text.RegularExpressions.MatchCollection splitterInstructions2 = BRACKET_TYPE2.Matches(splitName);
+		foreach (System.Text.RegularExpressions.Match match in splitterInstructions2) {
+			foreach (string val in match.Groups["values"].Value.Split(',')) {
+				parseInstructions(runConfig, splitConfig, val);
+			}
+		}
+	};
+
+	// hasOccurenceOfAnyPhrase returns true if the sequence of words provided contains any of the sequences of words
+	// in wantedPhrases (eg. does {"this", "is", "a", "test"} contains any of {{ "is", "good" }, {"a", "test"}}.)
+	Func<string[], List<string[]>, bool> hasOccurenceOfAnyPhrase = delegate(string[] words, List<string[]> wantedPhrases) {
+		List<string> wordsLst = new List<string>(words);
+
+		foreach (string[] wantedPhrase in wantedPhrases) {
+			if (wantedPhrase.Length == 0) {
+				continue;
+			}
+
+			string firstWord = wantedPhrase[0];
+			int wordCount = wantedPhrase.Length;
+
+
+			int startIdx = 0;
+			while (startIdx != -1) {
+				startIdx = wordsLst.IndexOf(firstWord, startIdx);
+
+				if (startIdx != -1) {
+					if (string.Join(" ", wordsLst.GetRange(startIdx, wordCount)) == string.Join(" ", wantedPhrase)) {
+						return true;
+					}
+					startIdx++;
+				}
+			}
+		}
+
+		return false;
+	};
+
+	// parseRunInstructions parses run config information from the first split.
+	Action<dynamic, dynamic, string> parseRunInstructions = delegate(dynamic runConfig, dynamic splitConfig, string val) {
+		System.Text.RegularExpressions.MatchCollection modeMatch = MODE.Matches(val);
+		if (modeMatch.Count != 0) {
+			switch (modeMatch[0].Groups["modeName"].Value) {
+			case "romhack":
+				runConfig.relaxedFadeMatch = true;
+				break;
+
+			case "rta":
+				runConfig.isRTAMode = true;
+				break;
+			};
+		}
+	};
+
+	// parseRunConfigFromFirstSplit retrieves run information from the first split name.
+	Action<dynamic, string> parseRunConfigFromFirstSplit = delegate(dynamic varsD, string splitName) {
+		parseSplitNameForAction(varsD, splitName, null, parseRunInstructions);
+	};
+
+	// parseSplitConfigWords finds special split types from the split name words.
+	Action<dynamic, dynamic, string[]> parseSplitConfigWords = delegate(dynamic runConfig, dynamic splitConfig, string[] words) {
+		if (hasOccurenceOfAnyPhrase(words, BOWSER_FIGHT_KEYWORDS)) {
+			splitConfig.type = SPLIT_TYPE_KEY_GRAB;
+		} else if (hasOccurenceOfAnyPhrase(words, BOWSER_STAGE_KEYWORDS)) {
+			splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
+		} else if (hasOccurenceOfAnyPhrase(words, KEY_UNLOCK_KEYWORDS)) {
+			splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
+		} else if (hasOccurenceOfAnyPhrase(words, MIPS_CLIP_KEYWORDS)) {
+			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
+		}
+	};
+
+	// parseSplitterInstructions takes the contents of splitter instructions (within brackets) and adjusts the current split config accordingly.
+	Action<dynamic, dynamic, string> parseSplitterInstructions = delegate(dynamic runConfig, dynamic splitConfig, string val) {
+		System.Text.RegularExpressions.MatchCollection starCountMatch = STAR_COUNT.Matches(val);
+		if (starCountMatch.Count != 0) {
+			if (splitConfig.type == SPLIT_TYPE_CASTLE_MOVEMENT) {
+				splitConfig.type = SPLIT_TYPE_STAR_GRAB;
+			}
+			splitConfig.starCountRequirement = Convert.ToInt32(starCountMatch[0].Groups["starCount"].Value);
+		}
+
+		System.Text.RegularExpressions.MatchCollection entryMatch = ENTRY.Matches(val);
+		if (entryMatch.Count != 0) {
+			splitConfig.type = SPLIT_TYPE_STAGE_ENTRY;
+			splitConfig.entryStageID = parseStageID(entryMatch[0].Groups["stageID"].Value);
+		}
+
+		System.Text.RegularExpressions.MatchCollection exitMatch = EXIT.Matches(val);
+		if (exitMatch.Count != 0) {
+			splitConfig.type = SPLIT_TYPE_STAGE_EXIT;
+			splitConfig.exitStageID = parseStageID(exitMatch[0].Groups["stageID"].Value);
+		}
+
+		System.Text.RegularExpressions.MatchCollection starDoorMatch = STAR_DOOR.Matches(val);
+		if (starDoorMatch.Count != 0) {
+			splitConfig.type = SPLIT_TYPE_STAR_DOOR_ENTRY;
+			splitConfig.starDoorID = parseStarDoorID(starDoorMatch[0].Groups["starCount"].Value);
+		}
+
+		// TODO(#6): AutoSplitter64 compatibility
+		// System.Text.RegularExpressions.MatchCollection doorXCamMatch = DOOR_XCAM_COUNT.Matches(val);
+		// if (doorXCamMatch.Count != 0) {
+		// 	splitConfig.doorXCamCountRequirement = Convert.ToInt32(doorXCamMatch[0].Groups["count"].Value);
+		// 	splitConfig.isDoorXCamCount = true;
+		// 	continue;
+		// }
+
+		switch (val) {
+		case "fade":
+			splitConfig.isForcedFade = true;
+			break;
+
+		case "immediate":
+			splitConfig.isForcedImmediate = true;
+			break;
+
+		case "noreset":
+			splitConfig.isNoReset = true;
+			break;
+
+		case "manual":
+			splitConfig.type = SPLIT_TYPE_MANUAL;
+			break;
+
+		case "bowser":
+		case "key":
+			splitConfig.type = SPLIT_TYPE_KEY_GRAB;
+			break;
+
+		case "key-door":
+			splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
+			break;
+
+		case "pipe":
+			splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
+			break;
+
+		case "mips":
+			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
+			break;
+		};
+	};
+
+	// parseSplitName configures splitConfig based on information within split name.
+	Action<dynamic, string> parseSplitName = delegate(dynamic varsD, string splitName) {
+		parseSplitNameForAction(varsD, splitName, parseSplitConfigWords, parseSplitterInstructions);
 	};
 
 	// updateRunConditionInner is the inner logic of update based exclusively on varsD (no settings/timer use). Helpful
@@ -647,23 +843,12 @@ startup {
 
 	int DEBUG_VARS_DUMP_SECONDS = 0;
 
+	// updateRunCondition is run before every loop, we update all the internal data.
 	Func<LiveSplitState, dynamic, dynamic, dynamic, dynamic, bool> updateRunCondition = delegate(LiveSplitState timerD, dynamic settingsD, dynamic varsD, dynamic oldD, dynamic currentD) {
-		// DEBUGGING: Add prints here for debugging. Every DEBUG_VARS_DUMP_SECONDS seconds.
-		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
-			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
-			print(varsToString(varsD));
-			print(string.Format("File A flags: {0:x}", getFileAFlags(varsD, currentD)));
-		}
-
-		varsD.data.updateCounter += 1;
-
 		// Copy settings to var to help with testing.
 		varsD.settings.isResetEnabled = settingsD.ResetEnabled;
 		varsD.settings.currentTimerPhase = timerD.CurrentPhase;
 		varsD.settings.currentSplitIndex = timerD.CurrentSplitIndex;
-		if (timerD.CurrentSplit != null) {
-			varsD.settings.currentSplitName = timerD.CurrentSplit.Name;
-		}
 		varsD.settings.splitCount = timerD.Run.Count;
 		varsD.settings.forceLaunchOnStart = settingsD[LAUNCH_ON_START];
 		varsD.settings.forceJPGameVersion = settingsD[GAME_VERSION_JP];
@@ -672,6 +857,28 @@ startup {
 		varsD.settings.disableRTAMode = settingsD[DISABLE_RTA_MODE];
 		varsD.settings.disableBowserRedsDelayedSplit = settingsD[DISABLE_BOWSER_REDS_DELAYED_SPLIT];
 		varsD.settings.disableAutoStartOnFileD = settingsD[DISABLE_AUTO_START_ON_FILE_D];
+
+		// Whenever current selected split changes, we parse information which decides when to split.
+		string currentSplitName = timerD.CurrentSplit != null ? timerD.CurrentSplit.Name.ToLower() : "";
+		if (varsD.data.runConfig.lastSplitName != currentSplitName) {
+			resetVarsDataForSplitChange(varsD, currentSplitName);
+			parseSplitName(varsD, currentSplitName);
+		}
+
+		string currentFirstSplitName = timerD.Run.Count != 0 ? timerD.Run[0].Name.ToLower() : "";
+		if (varsD.data.runConfig.lastFirstSplitName != currentFirstSplitName) {
+			resetVarsDataForFirstSplitChange(varsD, currentFirstSplitName);
+			parseRunConfigFromFirstSplit(varsD, currentFirstSplitName);
+		}
+
+		// DEBUGGING: Add prints here for debugging. Every DEBUG_VARS_DUMP_SECONDS seconds.
+		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
+			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
+			print(varsToString(varsD));
+			print(string.Format("File A flags: {0:x}", getFileAFlags(varsD, currentD)));
+		}
+
+		varsD.data.updateCounter += 1;
 
 		// Call inner update logic.
 		return updateRunConditionInner(varsD, oldD, currentD);
@@ -745,7 +952,7 @@ startup {
 
 	// onResetRunCondition ensures important variable re-initialization always happens after reset.
 	Action<dynamic> onResetRunCondition = delegate(dynamic varsD) {
-		varsD.data.runConfig = initRunConfigData();
+		varsD.data.runLiveData = initRunLiveData();
 	};
 
 	// resetRunCondition determines if run should be reset, stopping the timer and resetting it to its initial value.
@@ -763,9 +970,9 @@ startup {
 			gameRuntime_current < gameRuntime_old
 		);
 
-		if (isResetGame && !varsD.data.runConfig.wantToReset) {
-			varsD.data.runConfig.wantToReset = true;
-			varsD.data.runConfig.wantToResetTiming = gameRuntime_old;
+		if (isResetGame && !varsD.data.runLiveData.wantToReset) {
+			varsD.data.runLiveData.wantToReset = true;
+			varsD.data.runLiveData.wantToResetTiming = gameRuntime_old;
 		}
 
 		bool isResetRTA = (
@@ -776,7 +983,7 @@ startup {
 
 		bool isReset = isResetRTA;
 
-		if (varsD.data.runConfig.wantToReset && startRunCondition(varsD, oldD, currentD)) {
+		if (varsD.data.runLiveData.wantToReset && startRunCondition(varsD, oldD, currentD)) {
 			bool isNoReset = (
 				varsD.data.splitConfig.isNoReset ||
 				getFileAFlags(varsD, currentD) != 0
@@ -784,9 +991,9 @@ startup {
 
 			// When split is marked as no reset, reset conditions are ignored, unless a reset happens twice within
 			// NO_RESET_SECONDS_LEEWAY number of seconds (when greater than 0). In this case reset does happen.
-			if (isNoReset && (NO_RESET_SECONDS_LEEWAY == 0 || (NO_RESET_SECONDS_LEEWAY * 60) < vars.data.runConfig.wantToResetTiming)) {
-				vars.data.runConfig.wantToReset = false;
-				vars.data.runConfig.wantToResetTiming = 0;
+			if (isNoReset && (NO_RESET_SECONDS_LEEWAY == 0 || (NO_RESET_SECONDS_LEEWAY * 60) < vars.data.runLiveData.wantToResetTiming)) {
+				vars.data.runLiveData.wantToReset = false;
+				vars.data.runLiveData.wantToResetTiming = 0;
 			} else {
 				isReset = true;
 			}
@@ -800,147 +1007,6 @@ startup {
 		return false;
 	};
 
-	// parseStageID takes the id within entry=* and exit=* format, and returns the id as a byte.
-	Func<string, byte> parseStageID = delegate(string stageID) {
-		if (STAGE_NAMES_TO_INDEX.ContainsKey(stageID)) {
-			return STAGE_NAMES_TO_INDEX[stageID];
-		} else {
-			try {
-				return ((byte) Convert.ToInt32(stageID));
-			} catch (Exception e) {
-				print(string.Format("The value {0} is not in a recognizable stageID format (number or recognizable stage name): {1}", stageID, e));
-				return ((byte) 0xff);
-			}
-		}
-	};
-
-	// parseStarDoorID taks the id within star-door=* format, and returns the id as a byte.
-	Func<string, ushort> parseStarDoorID = delegate(string starCount) {
-		return ((ushort) Convert.ToInt32(starCount));
-	};
-
-	// parseSplitterInstructions takes the contents of splitter instructions (within brackets) and adjusts the current split config accordingly.
-	Action<System.Text.RegularExpressions.MatchCollection, dynamic, dynamic> parseSplitterInstructions = delegate(System.Text.RegularExpressions.MatchCollection matches, dynamic runConfig, dynamic splitConfig) {
-		foreach (System.Text.RegularExpressions.Match match in matches) {
-			foreach (string val in match.Groups["values"].Value.Split(',')) {
-				System.Text.RegularExpressions.MatchCollection starCountMatch = STAR_COUNT.Matches(val);
-				if (starCountMatch.Count != 0) {
-					if (splitConfig.type == SPLIT_TYPE_CASTLE_MOVEMENT) {
-						splitConfig.type = SPLIT_TYPE_STAR_GRAB;
-					}
-					splitConfig.starCountRequirement = Convert.ToInt32(starCountMatch[0].Groups["starCount"].Value);
-					continue;
-				}
-
-				System.Text.RegularExpressions.MatchCollection entryMatch = ENTRY.Matches(val);
-				if (entryMatch.Count != 0) {
-					splitConfig.type = SPLIT_TYPE_STAGE_ENTRY;
-					splitConfig.entryStageID = parseStageID(entryMatch[0].Groups["stageID"].Value);
-					continue;
-				}
-
-				System.Text.RegularExpressions.MatchCollection exitMatch = EXIT.Matches(val);
-				if (exitMatch.Count != 0) {
-					splitConfig.type = SPLIT_TYPE_STAGE_EXIT;
-					splitConfig.exitStageID = parseStageID(exitMatch[0].Groups["stageID"].Value);
-					continue;
-				}
-
-				System.Text.RegularExpressions.MatchCollection starDoorMatch = STAR_DOOR.Matches(val);
-				if (starDoorMatch.Count != 0) {
-					splitConfig.type = SPLIT_TYPE_STAR_DOOR_ENTRY;
-					splitConfig.starDoorID = parseStarDoorID(starDoorMatch[0].Groups["starCount"].Value);
-				}
-
-				System.Text.RegularExpressions.MatchCollection modeMatch = MODE.Matches(val);
-				if (modeMatch.Count != 0) {
-					print(string.Format("MATCH: {0}", modeMatch[0].Groups["modeName"].Value));
-					switch (modeMatch[0].Groups["modeName"].Value) {
-					case "romhack":
-						runConfig.relaxedFadeMatch = true;
-						break;
-
-					case "rta":
-						runConfig.isRTAMode = true;
-						break;
-					};
-				}
-
-				// TODO(#6): AutoSplitter64 compatibility
-				// System.Text.RegularExpressions.MatchCollection doorXCamMatch = DOOR_XCAM_COUNT.Matches(val);
-				// if (doorXCamMatch.Count != 0) {
-				// 	splitConfig.doorXCamCountRequirement = Convert.ToInt32(doorXCamMatch[0].Groups["count"].Value);
-				// 	splitConfig.isDoorXCamCount = true;
-				// 	continue;
-				// }
-
-				switch (val) {
-				case "fade":
-					splitConfig.isForcedFade = true;
-					break;
-
-				case "immediate":
-					splitConfig.isForcedImmediate = true;
-					break;
-
-				case "noreset":
-					splitConfig.isNoReset = true;
-					break;
-
-				case "manual":
-					splitConfig.type = SPLIT_TYPE_MANUAL;
-					break;
-
-				case "bowser":
-				case "key":
-					splitConfig.type = SPLIT_TYPE_KEY_GRAB;
-					break;
-
-				case "key-door":
-					splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
-					break;
-
-				case "pipe":
-					splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
-					break;
-
-				case "mips":
-					splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
-					break;
-				};
-			};
-		};
-	};
-
-	// parseSplitName configures splitConfig based on information within split name.
-	Action<dynamic, string> parseSplitName = delegate(dynamic varsD, string splitName) {
-		splitName = splitName.TrimStart('-');
-
-		HashSet<string> splitNameWords = splitWordsOnWhitespace(splitName);
-
-		dynamic splitConfig = varsD.data.splitConfig;
-		dynamic runConfig = varsD.data.runConfig;
-
-		if (splitNameWords.Overlaps(BOWSER_FIGHT_KEYWORDS_SET)) {
-			splitConfig.type = SPLIT_TYPE_KEY_GRAB;
-		} else if (splitNameWords.Overlaps(KEY_UNLOCK_KEYWORDS_SET)) {
-			splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
-		} else if (splitNameWords.Overlaps(BOWSER_STAGE_KEYWORDS_SET)) {
-			splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
-		}
-
-		System.Text.RegularExpressions.MatchCollection mipsClipMatch = MIPS_CLIP.Matches(splitName);
-		if (mipsClipMatch.Count != 0) {
-			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
-		}
-
-		System.Text.RegularExpressions.MatchCollection splitterInstructions1 = BRACKET_TYPE1.Matches(splitName);
-		parseSplitterInstructions(splitterInstructions1, runConfig, splitConfig);
-
-		System.Text.RegularExpressions.MatchCollection splitterInstructions2 = BRACKET_TYPE2.Matches(splitName);
-		parseSplitterInstructions(splitterInstructions2, runConfig, splitConfig);
-	};
-
 	// onSplitRunCondition ensures important variable re-initialization always happens after split.
 	Action<dynamic> onSplitRunCondition = delegate(dynamic varsD) {
 		varsD.data.splitConditions = initSplitConditionsData();
@@ -948,12 +1014,6 @@ startup {
 
 	// splitRunCondition determines whether split should happen for current segment.
 	Func<dynamic, dynamic, dynamic, bool> splitRunCondition = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
-		// Whenever current selected split changes, we parse information which decides when to split.
-		if (varsD.data.runConfig.lastSplitIndex != varsD.settings.currentSplitIndex) {
-			resetVarsDataForSplitChange(varsD, varsD.settings.currentSplitIndex);
-			parseSplitName(varsD, varsD.settings.currentSplitName.ToLower());
-		}
-
 		// Split configuration and conditions copy to avoid duplication.
 		dynamic splitConfig = varsD.data.splitConfig;
 		dynamic splitConditions = varsD.data.splitConditions;
@@ -1014,7 +1074,7 @@ startup {
 		);
 
 		// For the purpose of castle movement, we don't split on re-entering the same stage.
-		bool isSameStageEntry = varsD.data.runConfig.previousStage == stageIndex_current;
+		bool isSameStageEntry = varsD.data.runLiveData.previousStage == stageIndex_current;
 
 		// When getting the required number of stars in a non-bowser stage, we split on fadeout. If we are getting a star
 		// that does not fadeout (but star count is correct), we split immediately, unless we are in castle where we split
@@ -1054,15 +1114,12 @@ startup {
 
 		// When non-stop cheat code are enabled, we split slightly differently than normal. The "normal" splitting condition
 		// is on exit stage unless immediate split is added in which case the split happens immediately when the star is grabbed.
-		bool isStarGrabConditionInNonStopMet = (
+		addLevelChangeSplittingCondition(
 			splitConfig.type == SPLIT_TYPE_STAR_GRAB &&
 			isNonStopModeEnabled &&
 			starCount_old != starCount_current &&
 			starCount_current == splitConfig.starCountRequirement
 		);
-
-		addImmediateSplittingCondition(isStarGrabConditionInNonStopMet && splitConfig.isForcedImmediate);
-		addLevelChangeSplittingCondition(isStarGrabConditionInNonStopMet);
 
 		// When we get a star grab animation in a bowser fight stage, we got the key.
 		addLevelChangeSplittingCondition(
@@ -1180,14 +1237,24 @@ startup {
 
 		// Save stage id of last stage that was entered for castle movement condition.
 		if (isInStage) {
-			varsD.data.runConfig.previousStage = stageIndex_current;
+			varsD.data.runLiveData.previousStage = stageIndex_current;
 		}
+
+		bool readyToSplitImmediately = (
+			(splitConditions.isSplittingImmediately && !splitConfig.isForcedFade) ||
+			(splitConditions.isSplittingOnFade && splitConfig.isForcedImmediate)
+		);
+
+		bool readyToSplitOnFade = (
+			(splitConditions.isSplittingImmediately && splitConfig.isForcedFade) ||
+			(splitConditions.isSplittingOnFade)
+		);
 
 		// Return the result of splitting conditions check, vars are reset in onSplit to avoid duplicate splitting.
 		return (
-			splitConditions.isSplittingImmediately ||
-			(splitConditions.isSplittingOnFade && !runConfig.relaxedFadeMatch && (isStageFadeIn(stageIndex_old, stageIndex_current) || isStageFadeOut(stageIndex_old, stageIndex_current))) ||
-			(splitConditions.isSplittingOnFade && runConfig.relaxedFadeMatch && stageIndex_old != stageIndex_current)
+			(readyToSplitImmediately) ||
+			(readyToSplitOnFade && !runConfig.relaxedFadeMatch && (isStageFadeIn(stageIndex_old, stageIndex_current) || isStageFadeOut(stageIndex_old, stageIndex_current))) ||
+			(readyToSplitOnFade && runConfig.relaxedFadeMatch && stageIndex_old != stageIndex_current)
 		);
 	};
 
