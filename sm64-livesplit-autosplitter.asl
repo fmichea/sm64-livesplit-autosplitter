@@ -1,4 +1,4 @@
-// Version: 2.3.2beta
+// Version: 3.0.0
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -349,7 +349,7 @@ startup {
 	System.Text.RegularExpressions.Regex ENTRY = new System.Text.RegularExpressions.Regex(@"^entry=(?<stageID>(\w+|\d+))$");
 	System.Text.RegularExpressions.Regex EXIT = new System.Text.RegularExpressions.Regex(@"^exit=(?<stageID>(\w+|\d+))$");
 	System.Text.RegularExpressions.Regex STAR_DOOR = new System.Text.RegularExpressions.Regex(@"^star-door=(?<starCount>(8|30|50|70))$");
-	System.Text.RegularExpressions.Regex MODE = new System.Text.RegularExpressions.Regex(@"^mode=(?<modeName>(romhack|rta))$");
+	System.Text.RegularExpressions.Regex MODE = new System.Text.RegularExpressions.Regex(@"^run-mode=(?<modeName>(romhack|rta))$");
 
 	// TODO(#6): AutoSplitter64 compatibility
 	// System.Text.RegularExpressions.Regex XCAM_COUNT = new System.Text.RegularExpressions.Regex(@"^xcam=(?<count>\d+)$");

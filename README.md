@@ -132,6 +132,7 @@ support ROM Hacks.
 - If a split is marked with ``[manual]`` then you are responsible for splitting.
 - Bowser stage and key can also be configured using ``[key]``, ``[bowser]`` or ``[pipe]``. Also available, is ``[mips]``.
 - **Importantly**: all instructions can be merged into one block comma separated, eg. ``[26,immediate,noreset]``
+- To force splitting to only happen on final star grab (eg. for Bingo splits), use ``[final-star-grab]``
 
 ### Hiding Auto-Splitter Instructions.
 
@@ -167,7 +168,8 @@ to port these changes every time you upgrade the script.
 RTA Mode
 --------
 
-RTA mode is enabled when "RTA" is present in the category name for the splits. It adds reset and start conditions, with usamune ROM in mind.
+RTA mode is enabled when keyword ``run-mode=rta`` is present in the category name for the splits. It adds reset and start conditions,
+with usamune ROM in mind.
 
 Reset: If star count decreases, the timer is reset.
 
@@ -178,6 +180,18 @@ Additional start conditions:
 - A key door is touched.
 	
 Splitting conditions (incl. last split) are identical.
+
+Non-Stop
+--------
+
+Non-Stop mode is supported similarly to vanilla runs, one thing to note is that ``[immediate]`` works with non-stop and can be used
+to do very detailed splitting.
+
+RomHack Support
+---------------
+
+RomHack support is limited with this splitter as it is trying to keep accuracy as high as possible for vanilla, but adding
+the keyword ``run-mode=romhack`` to first segment will disable some checks which can help splitting on fade-out.
 
 ## Examples (with Usamune ROM Interaction)
 
