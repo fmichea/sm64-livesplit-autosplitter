@@ -72,7 +72,7 @@ startup {
 		List<string[]> result = new List<string[]>();
 
 		foreach (string phrase in phrases) {
-			string[] words = phrase.Split(' ');
+			string[] words = phrase.ToLower().Split(' ');
 			result.Add(words);
 		}
 
@@ -114,7 +114,7 @@ startup {
 		"basement",
 	});
 
-	// MIPS_CLIP_KEYWORDS:
+	// MIPS_CLIP_KEYWORDS: Any split name containing these keywords will split on DDD entry (when entering XCAM).
 	List<string[]> MIPS_CLIP_KEYWORDS = buildKeywords(new string[] {
 		"mips clip",
 	});
@@ -381,10 +381,6 @@ startup {
 	Func<ExpandoObject> initSplitConditionsData = delegate() {
 		dynamic data = new ExpandoObject();
 
-		// TODO(#6): AutoSplitter64 compatibility
-		// data.doorXCamCount = 0;
-		// data.doorXCamState = false;
-
 		data.isSplittingOnFade = false;
 		data.isSplittingImmediately = false;
 
@@ -479,9 +475,6 @@ startup {
 		result += string.Format("    varsD.data.splitConfig.isForcedFade = {0}\n", varsD.data.splitConfig.isForcedFade);
 		result += string.Format("    varsD.data.splitConfig.isForcedImmediate = {0}\n", varsD.data.splitConfig.isForcedImmediate);
 		result += "\n";
-		// TODO(#6): AutoSplitter64 compatibility
-		// result += string.Format("    varsD.data.splitConditions.doorXCamCount = {0}\n", varsD.data.splitConditions.doorXCamCount);
-		// result += string.Format("    varsD.data.splitConditions.doorXCamState = {0}\n", varsD.data.splitConditions.doorXCamState);
 		result += string.Format("    varsD.data.splitConditions.isSplittingOnFade = {0}\n", varsD.data.splitConditions.isSplittingOnFade);
 		result += string.Format("    varsD.data.splitConditions.isSplittingImmediately = {0}\n", varsD.data.splitConditions.isSplittingImmediately);
 		result += "\n";
@@ -687,7 +680,6 @@ startup {
 			string firstWord = wantedPhrase[0];
 			int wordCount = wantedPhrase.Length;
 
-
 			int startIdx = 0;
 			while (startIdx != -1) {
 				startIdx = wordsLst.IndexOf(firstWord, startIdx);
@@ -765,14 +757,6 @@ startup {
 			splitConfig.type = SPLIT_TYPE_STAR_DOOR_ENTRY;
 			splitConfig.starDoorID = parseStarDoorID(starDoorMatch[0].Groups["starCount"].Value);
 		}
-
-		// TODO(#6): AutoSplitter64 compatibility
-		// System.Text.RegularExpressions.MatchCollection doorXCamMatch = DOOR_XCAM_COUNT.Matches(val);
-		// if (doorXCamMatch.Count != 0) {
-		// 	splitConfig.doorXCamCountRequirement = Convert.ToInt32(doorXCamMatch[0].Groups["count"].Value);
-		// 	splitConfig.isDoorXCamCount = true;
-		// 	continue;
-		// }
 
 		switch (val) {
 		case "fade":
@@ -879,7 +863,6 @@ startup {
 		if (DEBUG_VARS_DUMP_SECONDS != 0 && (varsD.data.updateCounter % (DEBUG_VARS_DUMP_SECONDS * 60)) == 0) {
 			print(string.Format("MARIO POSITION: X:{0}, Y:{1}, Z:{2}", getPositionX(varsD, currentD), getPositionY(varsD, currentD), getPositionZ(varsD, currentD)));
 			print(varsToString(varsD));
-			print(string.Format("File A flags: {0:x}", getFileAFlags(varsD, currentD)));
 		}
 
 		varsD.data.updateCounter += 1;
@@ -923,8 +906,7 @@ startup {
 		if (
 			menuSelectedButtonID_old != menuSelectedButtonID_current &&
 			menuSelectedButtonID_old == 255 &&
-			0 <= menuSelectedButtonID_current &&
-			menuSelectedButtonID_current < 4 &&
+			0 <= menuSelectedButtonID_current && menuSelectedButtonID_current < 4 &&
 			(menuSelectedButtonID_current != 3 || !varsD.settings.disableAutoStartOnFileD) &&
 			menuClickPos_current == -10000
 		) {
@@ -1225,22 +1207,6 @@ startup {
 			isIn3DBox(varsD, currentD, doorBox) &&
 			optionalStarRequirementDone
 		);
-
-		// TODO(#6): AutoSplitter64 compatibility
-		// Door XCAM requires a little work.
-		// if (splitConfig.isDoorXCamCount && animation_old != animation_current) {
-		// 	bool isCurrentlyDoorXCam = DOOR_XCAM_COUNT_ACTIONS.Contains(animation_current);
-		//
-		// 	if (!splitConditions.doorXCamState && isCurrentlyDoorXCam) {
-		// 		splitConditions.doorXCamCount += 1;
-		//
-		// 		addImmediateSplittingCondition(
-		// 			splitConditions.doorXCamCount == splitConfig.doorXCamCountRequirement &&
-		// 			optionalStarRequirementDone
-		// 		);
-		// 	}
-		// 	splitConditions.doorXCamState = isCurrentlyDoorXCam;
-		// }
 
 		// Save stage id of last stage that was entered for castle movement condition.
 		if (isInStage) {
