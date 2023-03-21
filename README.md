@@ -38,7 +38,7 @@ Here is a list of features of this auto splitter:
 - Under ``Script Path`` select the ASL script.
 - You should now see settings in the box: **DO NOT CHANGE ANYTHING UNLESS YOU KNOW WHAT YOU ARE DOING**.
 - ``Save`` and done.
-- Remember to use an offset of 1.33s for every split file since timer starts on first logo frame (but SM64 time is measured from console start).
+- Remember to use an offset of 1.36s for every split file since timer starts on second logo frame (but SM64 time is measured from console start).
 
 ![Settings](./images/settings.jpg)
 
