@@ -168,7 +168,7 @@ to port these changes every time you upgrade the script.
 RTA Mode
 --------
 
-RTA mode is enabled when keyword ``run-mode=rta`` is present in the category name for the splits. It adds reset and start conditions,
+RTA mode is enabled when keyword ``run-mode=rta`` is present in first segment name for the splits. It adds reset and start conditions,
 with usamune ROM in mind.
 
 Reset: If star count decreases, the timer is reset.
