@@ -168,18 +168,20 @@ to port these changes every time you upgrade the script.
 RTA Mode
 --------
 
-RTA mode is enabled when keyword ``run-mode=rta`` is present in the category name for the splits. It adds reset and start conditions,
-with usamune ROM in mind.
+RTA mode is enabled when keyword ``[run-mode=rta]`` is present in the first split. It adds reset and start conditions,
+with usamune ROM in mind. It aims to time similarly to how leaderboard runs are expected to be timed.
 
-Reset: If star count decreases, the timer is reset.
+Reset: If either of the dpad down or L button is pressed, the timer is reset.
 
 Additional start conditions:
 
-- Star select screen is displayed (either through painting entry or usamune ROM menu)
+- A star is selected on the mission select scene.
 - Stage is exited (fade-out)
 - A key door is touched.
 	
-Splitting conditions (incl. last split) are identical.
+Additional end condition: immediate split on last star grab (can be delayed with ``[fade]`` keyword).
+
+Splitting conditions (incl. last split) are identical. Note that for RTA done on the 120 file, you will have to specify ``[120]`` for each split. This will split immediately on 100 coin stars. To avoid this issue, use ``[120,fade]``.
 
 Non-Stop
 --------
@@ -219,23 +221,6 @@ To reset:
 - Exit to lobby.
 - Under "MENU > DATA > For 70 Star" select "34". To reset your splits, flip between "OFF" and "34".
 - Touch the upstairs door, timer will star with door unlocking animation.
-
-### Single Stage RTA
-
-![WF 70/120 Stage RTA](./images/stage_rta.jpg)
-
-In the single stage RTA case, star count requirements should be starting from 0 stars. Usamune interaction looks like this:
-
-Once in a while:
-
-- Under "MENU > STAGE > STARTXT", select "1 Star", press A, increase CNT to 255 (each digit can be increased independently) and
-  press A again. This removes the textboxes when certain number of stars are collected. Otherwise too hard to manage correctly.
-
-To reset:
-
-- If painting entry is desired, get in position. Otherwise usamune ROM stage select can be used.
-- Under "MENU > DATA > For 0 Star", flip between OFF and DWEND. DWEND should be selected at the start of stage RTA. This resets all stars in stage.
-- Enter painting or select stage in menu, this will start the timer.
 
 # Settings
 

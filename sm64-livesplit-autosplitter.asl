@@ -970,9 +970,18 @@ startup {
 		if (
 			!varsD.settings.disableRTAMode &&
 			varsD.data.runConfig.isRTAMode &&
-			object0Behavior_current == bhvActSelector &&
-			2 <= varsD.data.runLiveData.starSelectTimerUpdateCount &&
-			varsD.data.runLiveData.starSelectLastTimerUpdateGT <= globalTimer_current - 5
+			(
+				isStageFadeOut(stageIndex_old, stageIndex_current) ||
+				(
+					animation_old != animation_current &&
+					animation_current == ACT_UNLOCKING_KEY_DOOR
+				) ||
+				(
+					object0Behavior_current == bhvActSelector &&
+					2 <= varsD.data.runLiveData.starSelectTimerUpdateCount &&
+					varsD.data.runLiveData.starSelectLastTimerUpdateGT <= globalTimer_current - 5
+				)
+			)
 		) {
 			return true;
 		}
