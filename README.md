@@ -321,3 +321,9 @@ For entry and exit splits, here are all of the shortcuts that can be used to ref
 | Wet Dry World               | ``wdw``   |
 | Whomp's Fortress            | ``wf``    |
 | Wing Mario Over the Rainbow | ``wmotr`` |
+
+## Developing / Debugging
+
+The program called "DbgView" can be used to see all printed log statenments by the auto splitter, as well as log made
+from livesplit when it loads the auto splitter, which can be used to find syntax errors and the like. The process ID
+can be filtered once it is known in the program directly to avoid the other spam.

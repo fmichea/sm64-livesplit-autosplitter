@@ -1,4 +1,4 @@
-// Version: 3.0.1
+// Version: 4.0.0-beta
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -24,9 +24,6 @@ state("Project64") {
 
 	ushort starCountJP : "Project64.exe", 0xD6A1C, 0x339EA8; // N64 addr: 0x80339E00 + 0xAA (struct field)
 	ushort starCountUS : "Project64.exe", 0xD6A1C, 0x33B218; // N64 addr: 0x8033B170 + 0xAA (struct field)
-
-	uint musicJP : "Project64.exe", 0xD6A1C, 0x222A1C;
-	uint musicUS : "Project64.exe", 0xD6A1C, 0x22261C;
 
 	ushort hudCameraModeJP : "Project64.exe", 0xD6A1C, 0x3314FA; // N64 addr: 0x803314F8
 	ushort hudCameraModeUS : "Project64.exe", 0xD6A1C, 0x33260A; // N64 addr: 0x80332608
@@ -65,6 +62,18 @@ state("Project64") {
 
 	short menuClickPosJP : "Project64.exe", 0xD6A1C, 0x1A7BE8;
 	short menuClickPosUS : "Project64.exe", 0xD6A1C, 0x1A7D28;
+
+	uint behaviorSegmentInfoJP : "Project64.exe", 0xD6A1C, 0x33A0DC; // N64 addr: sSegmentTable[0x13] = 0x8033A090 + 4 * 0x13 = 0x8033A0DC
+	uint behaviorSegmentInfoUS : "Project64.exe", 0xD6A1C, 0x33B44C; // N64 addr: sSegmentTable[0x13] = 0x8033B400 + 4 * 0x13 = 0x8033B44C
+
+	uint object0TimerJP : "Project64.exe", 0xD6A1C, 0x33C26C; // N64 addr: 0x8033C118 + 0x154
+	uint object0TimerUS : "Project64.exe", 0xD6A1C, 0x33D5DC; // N64 addr: 0x8033D488 + 0x154
+
+	uint object0BehaviorJP : "Project64.exe", 0xD6A1C, 0x33C324; // N64 addr: 0x8033C118 + 0x20C
+	uint object0BehaviorUS : "Project64.exe", 0xD6A1C, 0x33D694; // N64 addr: 0x8033D488 + 0x20C
+
+	ushort controller0ButtonsJP : "Project64.exe", 0xD6A1C, 0x339C30; // N64 addr: 0x80339C20 + 0x10 (gControllers[0].buttonDown)
+	ushort controller0ButtonsUS : "Project64.exe", 0xD6A1C, 0x33AFA0; // N64 addr: 0x8033AF90 + 0x10 (gControllers[0].buttonDown)
 }
 
 startup {
@@ -261,6 +270,7 @@ startup {
 	uint ACT_ENTERING_STAR_DOOR = 0x1331;
 
 	uint ACT_JUMBO_STAR_CUTSCENE = 0x1909;
+	uint ACT_FALL_AFTER_STAR_GRAB = 0x1904;
 
 	uint[] DOOR_XCAM_COUNT_ACTIONS = new uint[]{
 		0x1320, // ACT_PULLING_DOOR
@@ -271,8 +281,6 @@ startup {
 
 	uint DEBUG_FUNCTION_VALUE = 0x27bdffd8;
 
-	uint STAR_SELECT_MUSIC = 0x800d1600;
-
 	ushort FIXED_CAMERA_HUD = 0x4;
 	ushort FIXED_CAMERA_CDOWN_HUD = 0xC;
 
@@ -280,6 +288,12 @@ startup {
 	ushort NON_STOP_OVERWRITE_VALUE_USAMUNE = 0x0;
 
 	uint KEY_FLAGS = 0x10 | 0x20;
+
+	uint BHV_ACT_SELECTOR_JP = 0x13003028;
+	uint BHV_ACT_SELECTOR_US = 0x13003048;
+
+	ushort BUTTON_L_TRIG = 0x0020;
+	ushort BUTTON_DPAD_DOWN = 0x0400;
 
 	// Allows defining a 3D rectangular box to checkpoint mario's position for various splitting conditions.
 	Func<byte, float, float, float, float, float, float, dynamic> create3DBox = delegate(byte stageIndex, float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -395,6 +409,9 @@ startup {
 
 		data.wantToReset = false;
 		data.wantToResetTiming = 0;
+
+		data.starSelectTimerUpdateCount = 0;
+		data.starSelectLastTimerUpdateGT = 0;
 
 		return data;
 	};
@@ -524,10 +541,6 @@ startup {
 		return varsD.data.runConfig.isJapaneseVersion ? state.starCountJP : state.starCountUS;
 	};
 
-	Func<dynamic, dynamic, uint> getMusicTrack = delegate(dynamic varsD, dynamic state) {
-		return varsD.data.runConfig.isJapaneseVersion ? state.musicJP : state.musicUS;
-	};
-
 	Func<dynamic, dynamic, ushort> getHUDCameraMode = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.runConfig.isJapaneseVersion ? state.hudCameraModeJP : state.hudCameraModeUS;
 	};
@@ -550,6 +563,28 @@ startup {
 
 	Func<dynamic, dynamic, ushort> getNonStopInteractionOverwrite = delegate(dynamic varsD, dynamic state) {
 		return varsD.data.runConfig.isJapaneseVersion ? state.nonStopInteractionOverwriteJP : state.nonStopInteractionOverwriteUS;
+	};
+
+	Func<dynamic, dynamic, uint> getBehaviorSegmentInfo = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.runConfig.isJapaneseVersion ? state.behaviorSegmentInfoJP : state.behaviorSegmentInfoUS;
+	};
+
+	Func<dynamic, dynamic, uint> getObject0Behavior = delegate(dynamic varsD, dynamic state) {
+		uint segmentOffset = getBehaviorSegmentInfo(varsD, state);
+		uint virt = varsD.data.runConfig.isJapaneseVersion ? state.object0BehaviorJP : state.object0BehaviorUS;
+		return 0x13000000 + ((virt & 0x1FFFFFFF) - segmentOffset);
+	};
+
+	Func<dynamic, uint> getBhvActSelector = delegate(dynamic varsD) {
+		return varsD.data.runConfig.isJapaneseVersion ? BHV_ACT_SELECTOR_JP : BHV_ACT_SELECTOR_US;
+	};
+
+	Func<dynamic, dynamic, uint> getObject0Timer = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.runConfig.isJapaneseVersion ? state.object0TimerJP : state.object0TimerUS;
+	};
+
+	Func<dynamic, dynamic, ushort> getController0Buttons = delegate(dynamic varsD, dynamic state) {
+		return varsD.data.runConfig.isJapaneseVersion ? state.controller0ButtonsJP : state.controller0ButtonsUS;
 	};
 
 	Func<dynamic, dynamic, uint> getFileFlags = delegate(dynamic varsD, dynamic state) {
@@ -826,6 +861,22 @@ startup {
 			varsD.timerModel.Reset();
 		}
 
+		// If we are in a star select menu, we keep track of when the timer was last updated to find when it stops
+		// (a star was selected) so stage rta mode can start the timer.
+		uint bhvActSelector = getBhvActSelector(varsD);
+		uint object0Behavior_current = getObject0Behavior(varsD, currentD);
+
+		uint object0Timer_old = getObject0Timer(varsD, oldD);
+		uint object0Timer_current = getObject0Timer(varsD, currentD);
+
+		uint globalTimer_current = getGlobalTimer(varsD, currentD);
+
+		if (object0Behavior_current == bhvActSelector && object0Timer_old != object0Timer_current) {
+			varsD.data.runLiveData.starSelectTimerUpdateCount += 1;
+			varsD.data.runLiveData.starSelectLastTimerUpdateGT = globalTimer_current;
+			// print(string.Format("UPDATE TO TIMER: {0}", globalTimer_current));
+		}
+
 		return true;
 	};
 
@@ -876,6 +927,7 @@ startup {
 		uint gameRuntime_old = getGameRuntime(varsD, oldD);
 		uint gameRuntime_current = getGameRuntime(varsD, currentD);
 
+		uint globalTimer_old = getGlobalTimer(varsD, oldD);
 		uint globalTimer_current = getGlobalTimer(varsD, currentD);
 
 		byte stageIndex_old = getStageIndex(varsD, oldD);
@@ -883,9 +935,6 @@ startup {
 
 		uint animation_old = getAnimation(varsD, oldD);
 		uint animation_current = getAnimation(varsD, currentD);
-
-		uint music_old = getMusicTrack(varsD, oldD);
-		uint music_current = getMusicTrack(varsD, currentD);
 
 		byte menuSelectedButtonID_old = getMenuSelectedButtonID(varsD, oldD);
 		byte menuSelectedButtonID_current = getMenuSelectedButtonID(varsD, currentD);
@@ -915,20 +964,15 @@ startup {
 		}
 
 		// RTA mode, timer starts when we see star select screen, we leave a stage (fade-out) or we touch a door.
+		uint bhvActSelector = getBhvActSelector(varsD);
+		uint object0Behavior_current = getObject0Behavior(varsD, currentD);
+
 		if (
 			!varsD.settings.disableRTAMode &&
 			varsD.data.runConfig.isRTAMode &&
-			(
-				isStageFadeOut(stageIndex_old, stageIndex_current) ||
-				(
-					animation_old != animation_current &&
-					animation_current == ACT_UNLOCKING_KEY_DOOR
-				) ||
-				(
-					music_old != music_current &&
-					music_current == STAR_SELECT_MUSIC
-				)
-			)
+			object0Behavior_current == bhvActSelector &&
+			2 <= varsD.data.runLiveData.starSelectTimerUpdateCount &&
+			varsD.data.runLiveData.starSelectLastTimerUpdateGT <= globalTimer_current - 5
 		) {
 			return true;
 		}
@@ -961,10 +1005,12 @@ startup {
 			varsD.data.runLiveData.wantToResetTiming = gameRuntime_old;
 		}
 
+		ushort controller0Buttons = getController0Buttons(varsD, currentD);
+
 		bool isResetRTA = (
 			!vars.settings.disableRTAMode &&
 			varsD.data.runConfig.isRTAMode &&
-			starCount_current < starCount_old
+			(controller0Buttons & (BUTTON_L_TRIG | BUTTON_DPAD_DOWN)) != 0
 		);
 
 		bool isReset = isResetRTA;
@@ -1127,13 +1173,23 @@ startup {
 		);
 
 		// This is the last split and we are getting the last star, split immediately.
+		bool isLastSplit = varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1;
+
 		addImmediateSplittingCondition(
 			(
-				splitConfig.type == SPLIT_TYPE_FINAL_STAR_GRAB ||
-				varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1
+				splitConfig.type == SPLIT_TYPE_FINAL_STAR_GRAB || isLastSplit
 			) &&
 			animation_old != animation_current &&
 			animation_current == ACT_JUMBO_STAR_CUTSCENE
+		);
+
+		addImmediateSplittingCondition(
+			!splitConfig.isForcedFade &&
+			!vars.settings.disableRTAMode &&
+			varsD.data.runConfig.isRTAMode &&
+			isLastSplit &&
+			animation_old != animation_current &&
+			animation_current == ACT_FALL_AFTER_STAR_GRAB
 		);
 
 		// When we are doing castle movement split and we enter a stage.
@@ -1248,7 +1304,7 @@ startup {
 		return varsD;
 	};
 
-	Func<bool, uint, uint, byte, uint, ushort, uint, dynamic> mockStateBuilder = delegate(bool isJP, uint gameRuntime, uint globalTimer, byte stageIndex, uint animation, ushort starCount, uint music) {
+	Func<bool, uint, uint, byte, uint, ushort, dynamic> mockStateBuilder = delegate(bool isJP, uint gameRuntime, uint globalTimer, byte stageIndex, uint animation, ushort starCount) {
 		dynamic state = new ExpandoObject();
 
 		uint defaultDebugFunctionValue = 0xf1f1f1f1;
@@ -1275,10 +1331,6 @@ startup {
 		state.starCountJP = isJP ? starCount : defaultStarCount;
 		state.starCountUS = isJP ? defaultStarCount : starCount;
 
-		uint defaultMusic = 0xf7f7f7f7;
-		state.musicJP = isJP ? music : defaultMusic;
-		state.musicUS = isJP ? defaultMusic : music;
-
 		ushort defaultNonStopValue = 0xf8f8;
 		state.nonStopInteractionOverwriteJP = /* isJP ? nonStopValue : */ defaultNonStopValue;
 		state.nonStopInteractionOverwriteUS = /* isJP ? */ defaultNonStopValue /* : nonStopValue */;
@@ -1294,6 +1346,22 @@ startup {
 		uint defaultFileAMagic = 0x00000000;
 		state.fileAFlagsJP = defaultFileAMagic;
 		state.fileAFlagsUS = defaultFileAMagic;
+
+		uint defaultObject0Timer = 0;
+		state.object0TimerJP = defaultObject0Timer;
+		state.object0TimerUS = defaultObject0Timer;
+
+		uint defaultObject0Behavior = 0;
+		state.object0BehaviorJP = defaultObject0Behavior;
+		state.object0BehaviorUS = defaultObject0Behavior;
+
+		uint defaultBehaviorSegmentInfo = 0;
+		state.behaviorSegmentInfoJP = defaultBehaviorSegmentInfo;
+		state.behaviorSegmentInfoUS = defaultBehaviorSegmentInfo;
+
+		ushort defaultController0Buttons = 0;
+		state.controller0ButtonsJP = defaultController0Buttons;
+		state.controller0ButtonsUS = defaultController0Buttons;
 
 		return state;
 	};
@@ -1317,8 +1385,8 @@ startup {
 	Action<bool> testDoesNotResetNormalConditions = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 
-		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 0, 0);
-		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
+		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 0);
+		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 0);
 
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testDoesNotResetNormalConditions: update returned false");
@@ -1333,8 +1401,8 @@ startup {
 	Action<bool> testResetWhenGameRestarted = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 
-		dynamic oldD = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
-		dynamic currentD = mockStateBuilder(isJP, 0, 0, 1, 0, 0, 0);
+		dynamic oldD = mockStateBuilder(isJP, 1, 0, 1, 0, 0);
+		dynamic currentD = mockStateBuilder(isJP, 0, 0, 1, 0, 0);
 
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testResetWhenGameRestarted: update returned false");
@@ -1354,8 +1422,8 @@ startup {
 		dynamic varsD = mockVarsBuilder();
 		varsD.data.runConfig.isRTAMode = true;
 
-		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 60, 0);
-		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 58, 0);
+		dynamic oldD = mockStateBuilder(isJP, 0, 0, 1, 0, 60);
+		dynamic currentD = mockStateBuilder(isJP, 1, 0, 1, 0, 58);
 
 		bool isUpdate = updateRunConditionInner(varsD, oldD, currentD);
 		assertCondition(isJP, isUpdate, "testResetWhenRTAModeAndStarsReduction: update returned false");
@@ -1374,9 +1442,9 @@ startup {
 	Action<bool> testStartRunOnFrame4 = delegate(bool isJP) {
 		dynamic varsD = mockVarsBuilder();
 
-		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
-		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0, 0);
-		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0, 0);
+		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0);
+		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0);
+		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0);
 
 		bool isUpdate = updateRunConditionInner(varsD, state1, state2);
 		assertCondition(isJP, isUpdate, "testStartRunOnFrame4: update returned false");
@@ -1395,9 +1463,9 @@ startup {
 		dynamic varsD = mockVarsBuilder();
 		varsD.settings.forceLaunchOnStart = true;
 
-		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0, 0);
-		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0, 0);
-		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0, 0);
+		dynamic state1 = mockStateBuilder(isJP, 1, 0, 1, 0, 0);
+		dynamic state2 = mockStateBuilder(isJP, 0, 1, 1, 0, 0);
+		dynamic state3 = mockStateBuilder(isJP, 1, 4, 1, 0, 0);
 
 		bool isUpdate = updateRunConditionInner(varsD, state1, state2);
 		assertCondition(isJP, isUpdate, "testStartForceOnLaunch: update returned false");
