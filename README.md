@@ -175,7 +175,7 @@ Reset: If either of the dpad down or L button is pressed, the timer is reset.
 
 Additional start conditions:
 
-- A star is selected on the mission select scene.
+- A star is selected on the mission select scene. (timer offset: ``0.20``)
 - Stage is exited (fade-out)
 - A key door is touched.
 	
