@@ -250,7 +250,7 @@ Touching the grand star will not cause a split if on the last split. Useful only
 
 ### Disable RTA Mode
 
-Enable this option to disable RTA mode, this should be unnecessary as RTA mode only activates for splits with "RTA" in category name.
+Enable this option to disable RTA mode, this should be unnecessary as RTA mode only activates for splits with "run-mode=rta" in first segment's name.
 
 ### Disable Bowser Reds Delayed Split
 
