@@ -874,7 +874,6 @@ startup {
 		if (object0Behavior_current == bhvActSelector && object0Timer_old != object0Timer_current) {
 			varsD.data.runLiveData.starSelectTimerUpdateCount += 1;
 			varsD.data.runLiveData.starSelectLastTimerUpdateGT = globalTimer_current;
-			// print(string.Format("UPDATE TO TIMER: {0}", globalTimer_current));
 		}
 
 		return true;
