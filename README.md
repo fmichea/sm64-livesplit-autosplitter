@@ -73,7 +73,7 @@ There are a few types of splits that can be defined, here are some examples:
 - Door interaction splits: split happens after a certain number of door interactions, more on this later.
 - Stage entry and exit splits: split happens when entering or exit a specific stage.
 
-A few modifiers are also available and will be explained in the more advanced format below. Remember to use an offset of 1.36s for every split file since timer starts on first logo frame (but SM64 time is measured from console start).
+A few modifiers are also available and will be explained in the more advanced format below. Remember to use an offset of 1.36s for every split file since timer starts on second logo frame (but SM64 time is measured from console start).
 
 ## Main Format and Keywords
 
@@ -237,7 +237,7 @@ Enable this option if you would like timer reset to be delayed until timer start
 
 ### Start on game launch instead of logo
 
-This should basically never be checked. Timer will start by default on the first frame of the logo, which is exactly 1.36s
+This should basically never be checked. Timer will start by default on the second frame of the logo, which is exactly 1.36s
 from console boot on real N64. Therefore timer should be configured with 1.36s offset.
 
 If instead you would like to start on "console start" (emulator start), you may check this option, however it is highly
