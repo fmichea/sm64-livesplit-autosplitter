@@ -1,4 +1,4 @@
-// Version: 4.0.0
+// Version: 4.0.1
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -123,9 +123,10 @@ startup {
 		"basement",
 	});
 
-	// MIPS_CLIP_KEYWORDS: Any split name containing these keywords will split on DDD entry (when entering XCAM).
-	List<string[]> MIPS_CLIP_KEYWORDS = buildKeywords(new string[] {
+	// THIRTY_STAR_DOOR_CLIP_KEYWORDS: Any split name containing these keywords will split on DDD/FS entry (when entering XCAM).
+	List<string[]> THIRTY_STAR_DOOR_CLIP_KEYWORDS = buildKeywords(new string[] {
 		"mips clip",
+		"sblj",
 	});
 
 	// ********** USER_CUSTOMIZATION_END **********
@@ -253,7 +254,7 @@ startup {
 	int SPLIT_TYPE_KEY_GRAB = 1;
 	int SPLIT_TYPE_KEY_DOOR_UNLOCK = 2;
 	int SPLIT_TYPE_BOWSER_PIPE_ENTRY = 3;
-	int SPLIT_TYPE_MIPS_CLIP = 4;
+	int SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP = 4;
 	int SPLIT_TYPE_STAR_GRAB = 5;
 	int SPLIT_TYPE_STAR_DOOR_ENTRY = 6;
 	int SPLIT_TYPE_STAGE_ENTRY = 7;
@@ -760,8 +761,8 @@ startup {
 			splitConfig.type = SPLIT_TYPE_BOWSER_PIPE_ENTRY;
 		} else if (hasOccurenceOfAnyPhrase(words, KEY_UNLOCK_KEYWORDS)) {
 			splitConfig.type = SPLIT_TYPE_KEY_DOOR_UNLOCK;
-		} else if (hasOccurenceOfAnyPhrase(words, MIPS_CLIP_KEYWORDS)) {
-			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
+		} else if (hasOccurenceOfAnyPhrase(words, THIRTY_STAR_DOOR_CLIP_KEYWORDS)) {
+			splitConfig.type = SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP;
 		}
 	};
 
@@ -824,7 +825,8 @@ startup {
 			break;
 
 		case "mips":
-			splitConfig.type = SPLIT_TYPE_MIPS_CLIP;
+		case "30s-door-clip":
+			splitConfig.type = SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP;
 			break;
 
 		case "final-star-grab":
@@ -1239,9 +1241,15 @@ startup {
 			optionalStarRequirementDone
 		);
 
-		// MIPS clip is split on XCAM entering DDD by convention, detect this here.
+		// MIPS Clip/SBLJ is split on XCAM entering DDD/FS by convention, detect this here.
 		addImmediateSplittingCondition(
-			splitConfig.type == SPLIT_TYPE_MIPS_CLIP &&
+			splitConfig.type == SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP &&
+			stageIndex_old != stageIndex_current &&
+			stageIndex_current == BITFS_STAGE_INDEX
+		);
+
+		addImmediateSplittingCondition(
+			splitConfig.type == SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP &&
 			hudCameraMode_old != hudCameraMode_current &&
 			(
 				hudCameraMode_current == FIXED_CAMERA_HUD ||
@@ -1537,3 +1545,5 @@ onSplit {
 update {
 	return vars.functions.updateRunCondition(timer, settings, vars, old, current);
 }
+
+// vi: ft=cs
