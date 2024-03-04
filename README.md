@@ -3,7 +3,7 @@ sm64-livesplit-autosplitter.asl - Super Mario 64 Livesplit Auto-Splitter
 
 This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64.
 
-It is heavily (**heavily**) inspired by a few other auto-splitters, however these did not quite do it for me[*](#footnotes), so I decided
+It is heavily (**heavily**) inspired by a few other auto-splitters, however these did not quite do it for me[\*](#footnotes), so I decided
 to write my own. Still this would not exist without them, so please check them out:
 
 - https://github.com/ColinT/banana-split
@@ -14,7 +14,7 @@ You are welcome to try this splitter as well, it has worked well for me so far, 
 If you report those, I will try to address them. I also welcome feature requests if you have any.
 
 Here is a list of features of this auto splitter:
- 
+
 - **Zero Configuration**: all splitting defaults should be sane for the customs that SM64 community uses. Shouldn't need to configure anything.
 - **Automatic ROM Version Detection**: the script detects which version is loaded in PJ64 memory automatically.
    - Supports both US and JP game versions.
@@ -69,7 +69,7 @@ There are a few types of splits that can be defined, here are some examples:
     - ``Basement (26)``
 - Castle movement split: when measuring time between two stages
     - ``Lakitu Skip``
-    - ``Mips Clip`` (special, splits on XCAM)
+    - ``Mips Clip`` and ``SBLJ`` (special, splits on XCAM)
 - Door interaction splits: split happens after a certain number of door interactions, more on this later.
 - Stage entry and exit splits: split happens when entering or exit a specific stage.
 
@@ -130,7 +130,7 @@ support ROM Hacks.
 - It is possible to prevent emulator reset from resetting run on specific split using ``[noreset]``. If reset happens twice in a row
   within 5 seconds then the reset does happen (force timer reset).
 - If a split is marked with ``[manual]`` then you are responsible for splitting.
-- Bowser stage and key can also be configured using ``[key]``, ``[bowser]`` or ``[pipe]``. Also available, is ``[mips]``.
+- Bowser stage and key can also be configured using ``[key]``, ``[bowser]`` or ``[pipe]``. Also available, is ``[mips]`` or ``[30s-door-clip]``.
 - **Importantly**: all instructions can be merged into one block comma separated, eg. ``[26,immediate,noreset]``
 - To force splitting to only happen on final star grab (eg. for Bingo splits), use ``[final-star-grab]``
 
