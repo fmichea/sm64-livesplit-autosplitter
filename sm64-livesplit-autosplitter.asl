@@ -1244,15 +1244,18 @@ startup {
 		// MIPS Clip/SBLJ is split on XCAM entering DDD/FS by convention, detect this here.
 		addImmediateSplittingCondition(
 			splitConfig.type == SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP &&
+			stageIndex_old != stageIndex_current &&
+			stageIndex_current == BITFS_STAGE_INDEX
+		);
+
+		addImmediateSplittingCondition(
+			splitConfig.type == SPLIT_TYPE_THIRTY_STAR_DOOR_CLIP &&
 			hudCameraMode_old != hudCameraMode_current &&
 			(
 				hudCameraMode_current == FIXED_CAMERA_HUD ||
 				hudCameraMode_current == FIXED_CAMERA_CDOWN_HUD
 			) &&
-			(
-			    warpDestination_current == DDD_STAGE_INDEX ||
-				warpDestination_current == BITFS_STAGE_INDEX
-			)
+			warpDestination_current == DDD_STAGE_INDEX
 		);
 
 		// Star door interaction splits when entering sliding star door.
