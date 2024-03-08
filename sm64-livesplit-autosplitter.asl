@@ -1,4 +1,4 @@
-// Version: 4.0.1
+// Version: 4.0.2
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings
@@ -1186,14 +1186,13 @@ startup {
 		bool isLastSplit = varsD.settings.currentSplitIndex == varsD.settings.splitCount - 1;
 
 		addImmediateSplittingCondition(
-			(
-				splitConfig.type == SPLIT_TYPE_FINAL_STAR_GRAB || isLastSplit
-			) &&
+			(splitConfig.type == SPLIT_TYPE_FINAL_STAR_GRAB || isLastSplit) &&
 			animation_old != animation_current &&
 			animation_current == ACT_JUMBO_STAR_CUTSCENE
 		);
 
 		addImmediateSplittingCondition(
+			splitConfig.type == SPLIT_TYPE_STAR_GRAB &&
 			!splitConfig.isForcedFade &&
 			!vars.settings.disableRTAMode &&
 			varsD.data.runConfig.isRTAMode &&
