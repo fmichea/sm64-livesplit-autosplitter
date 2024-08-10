@@ -137,14 +137,16 @@ support ROM Hacks.
 ### Hiding Auto-Splitter Instructions.
 
 If you do not like the defaults for auto splitter instructions, or do not like more complex instructions showing up in your splits, you
-may try the new SubSplits layout fork which hides any instructions as described in Miscellaneous prefixed with ``AS:``. Example, a split
-named ``Bomb Clip AS:[1]`` under ``Edit Splits`` will display as ``Bomb Clip``. A split named ``Sky AS:[120,pipe]`` will display as
+may try the new Splits or SubSplits layouts fork which hide any instructions as described in Miscellaneous prefixed with ``AS:``.
+Example, a split named ``Bomb Clip AS:[1]`` under ``Edit Splits`` will display as ``Bomb Clip``. A split named ``Sky AS:[120,pipe]`` will display as
 ``Sky``. However a split named ``WF [8]`` will still display the same because the splitter instruction is not prefixed.
 
-You can find this fork release here: https://github.com/fmichea/LiveSplit.SubsplitsFAS/releases
+You can find these forks release here:
+- https://github.com/fmichea/LiveSplit.SplitsFAS/releases
+- https://github.com/fmichea/LiveSplit.SubsplitsFAS/releases
 
-Drop the DLL in your Components directory for livesplit, then under Layout settings, add SubSplitsFAS and configure it like
-SubSplits was configured.
+Drop the DLL in your Components directory for livesplit, then under Layout settings, add SplitsFAS or SubSplitsFAS to your layout, and configure it like
+Splits or SubSplits was configured.
 
 ## Examples
 
