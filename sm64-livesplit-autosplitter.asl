@@ -76,6 +76,78 @@ state("Project64") {
 	ushort controller0ButtonsUS : "Project64.exe", 0xD6A1C, 0x33AFA0; // N64 addr: 0x8033AF90 + 0x10 (gControllers[0].buttonDown)
 }
 
+state("RMG") {
+	// This looks like it always has value DEBUG_FUNCTION_VALUE in the correct ROM.
+	// Used to determine which ROM is currently loaded in PJ64 automatically.
+	uint debugFunctionJP : "mupen64plus.dll", 0xC56B8, 0x2CA6E0;
+	uint debugFunctionUS : "mupen64plus.dll", 0xC56B8, 0x2CB1C0;
+
+	uint gameRunTimeJP : "mupen64plus.dll", 0xC56B8, 0x32C640;
+	uint gameRunTimeUS : "mupen64plus.dll", 0xC56B8, 0x32D580;
+
+	uint globalTimerJP : "mupen64plus.dll", 0xC56B8, 0x32C694;
+	uint globalTimerUS : "mupen64plus.dll", 0xC56B8, 0x32D5D4;
+
+	byte stageIndexJP : "mupen64plus.dll", 0xC56B8, 0x32CE9A; // N64 addr: 0x8032CE98
+	byte stageIndexUS : "mupen64plus.dll", 0xC56B8, 0x32DDFA; // N64 addr: 0x8032DDF8
+
+	uint animationJP : "mupen64plus.dll", 0xC56B8, 0x339E0C; // N64 addr: 0x80339E00 + 0xC (struct field)
+	uint animationUS : "mupen64plus.dll", 0xC56B8, 0x33B17C; // N64 addr: 0x8033B170 + 0xC (struct field)
+
+	ushort starCountJP : "mupen64plus.dll", 0xC56B8, 0x339EA8; // N64 addr: 0x80339E00 + 0xAA (struct field)
+	ushort starCountUS : "mupen64plus.dll", 0xC56B8, 0x33B218; // N64 addr: 0x8033B170 + 0xAA (struct field)
+
+	ushort hudCameraModeJP : "mupen64plus.dll", 0xC56B8, 0x3314FA; // N64 addr: 0x803314F8
+	ushort hudCameraModeUS : "mupen64plus.dll", 0xC56B8, 0x33260A; // N64 addr: 0x80332608
+
+	float positionXJP : "mupen64plus.dll", 0xC56B8, 0x339E3C; // N64 addr: 0x80339E00 + 0x3C (struct field) + 0x0 (array offset)
+	float positionXUS : "mupen64plus.dll", 0xC56B8, 0x33B1AC; // N64 addr: 0x8033B170 + 0x3C (struct field) + 0x0 (array offset)
+
+	float positionYJP : "mupen64plus.dll", 0xC56B8, 0x339E40; // N64 addr: 0x80339E00 + 0x3C (struct field) + 0x4 (array offset)
+	float positionYUS : "mupen64plus.dll", 0xC56B8, 0x33B1B0; // N64 addr: 0x8033B170 + 0x3C (struct field) + 0x4 (array offset)
+
+	float positionZJP : "mupen64plus.dll", 0xC56B8, 0x339E44; // N64 addr: 0x80339E00 + 0x3C (struct field) + 0x8 (array offset)
+	float positionZUS : "mupen64plus.dll", 0xC56B8, 0x33B1B4; // N64 addr: 0x8033B170 + 0x3C (struct field) + 0x8 (array offset)
+
+	byte warpDestinationJP : "mupen64plus.dll", 0xC56B8, 0x339EDA; // N64 addr: 0x80339ED8 + 0x4 (struct field)
+	byte warpDestinationUS : "mupen64plus.dll", 0xC56B8, 0x33B24A; // N64 addr: 0x8033B248 + 0x4 (struct field)
+
+	// Files from gSaveBuffer, each file is 0x70 apart.
+	uint fileAFlagsJP : "mupen64plus.dll", 0xC56B8, 0x207B08;
+	uint fileAFlagsUS : "mupen64plus.dll", 0xC56B8, 0x207708;
+
+	uint fileBFlagsJP : "mupen64plus.dll", 0xC56B8, 0x207B78;
+	uint fileBFlagsUS : "mupen64plus.dll", 0xC56B8, 0x207778;
+
+	uint fileCFlagsJP : "mupen64plus.dll", 0xC56B8, 0x207BE8;
+	uint fileCFlagsUS : "mupen64plus.dll", 0xC56B8, 0x2077E8;
+
+	uint fileDFlagsJP : "mupen64plus.dll", 0xC56B8, 0x207C58;
+	uint fileDFlagsUS : "mupen64plus.dll", 0xC56B8, 0x207858;
+
+	// Non-stop code writes 0/2400 to this address when enabled, changing interactions.
+	ushort nonStopInteractionOverwriteJP : "mupen64plus.dll", 0xC56B8, 0x24DC1E; // N64 addr: 0x8024DC1C (found in Gameshark Code).
+	ushort nonStopInteractionOverwriteUS : "mupen64plus.dll", 0xC56B8, 0x24DDBE; // N64 addr: 0x8024DDBC (found in Gameshark Code).
+
+	byte menuSelectedButtonIDJP : "mupen64plus.dll", 0xC56B8, 0x1A7BD3; // N64 addr: 0x801A7BD0
+	byte menuSelectedButtonIDUS : "mupen64plus.dll", 0xC56B8, 0x1A7D13; // N64 addr: 0x801A7D10
+
+	short menuClickPosJP : "mupen64plus.dll", 0xC56B8, 0x1A7BE8;
+	short menuClickPosUS : "mupen64plus.dll", 0xC56B8, 0x1A7D28;
+
+	uint behaviorSegmentInfoJP : "mupen64plus.dll", 0xC56B8, 0x33A0DC; // N64 addr: sSegmentTable[0x13] = 0x8033A090 + 4 * 0x13 = 0x8033A0DC
+	uint behaviorSegmentInfoUS : "mupen64plus.dll", 0xC56B8, 0x33B44C; // N64 addr: sSegmentTable[0x13] = 0x8033B400 + 4 * 0x13 = 0x8033B44C
+
+	uint object0TimerJP : "mupen64plus.dll", 0xC56B8, 0x33C26C; // N64 addr: 0x8033C118 + 0x154
+	uint object0TimerUS : "mupen64plus.dll", 0xC56B8, 0x33D5DC; // N64 addr: 0x8033D488 + 0x154
+
+	uint object0BehaviorJP : "mupen64plus.dll", 0xC56B8, 0x33C324; // N64 addr: 0x8033C118 + 0x20C
+	uint object0BehaviorUS : "mupen64plus.dll", 0xC56B8, 0x33D694; // N64 addr: 0x8033D488 + 0x20C
+
+	ushort controller0ButtonsJP : "mupen64plus.dll", 0xC56B8, 0x339C30; // N64 addr: 0x80339C20 + 0x10 (gControllers[0].buttonDown)
+	ushort controller0ButtonsUS : "mupen64plus.dll", 0xC56B8, 0x33AFA0; // N64 addr: 0x8033AF90 + 0x10 (gControllers[0].buttonDown)
+}
+
 startup {
 	Func<string[], List<string[]>> buildKeywords = delegate(string[] phrases) {
 		List<string[]> result = new List<string[]>();
