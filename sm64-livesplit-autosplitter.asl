@@ -1,4 +1,4 @@
-// Version: 4.0.1
+// Version: 4.1.0
 
 // Code: https://github.com/n64decomp/sm64/
 // Address map: https://github.com/SM64-TAS-ABC/STROOP/tree/Development/STROOP/Mappings

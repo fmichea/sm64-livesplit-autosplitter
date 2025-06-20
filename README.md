@@ -1,7 +1,7 @@
 sm64-livesplit-autosplitter.asl - Super Mario 64 Livesplit Auto-Splitter
 ========================================================================
 
-This is my personal autosplitter for livesplit to be used with Project64 1.6 for Super Mario 64.
+This is my personal autosplitter for livesplit to be used with **Project64 1.6** and **Rosalie's RMG 0.7.9 and later** for Super Mario 64.
 
 It is heavily (**heavily**) inspired by a few other auto-splitters, however these did not quite do it for me[\*](#footnotes), so I decided
 to write my own. Still this would not exist without them, so please check them out:
