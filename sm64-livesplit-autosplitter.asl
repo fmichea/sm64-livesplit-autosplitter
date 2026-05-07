@@ -78,7 +78,8 @@ state("Project64") {
 
 state("RMG") {
 	// This looks like it always has value DEBUG_FUNCTION_VALUE in the correct ROM.
-	// Used to determine which ROM is currently loaded in PJ64 automatically.
+	// Used to determine which ROM is currently loaded in RMG automatically.
+	// RMG 0.7.9 and 0.8.0: N64 RAM base pointer lives at mupen64plus.dll + 0xC56B8.
 	uint debugFunctionJP : "mupen64plus.dll", 0xC56B8, 0x2CA6E0;
 	uint debugFunctionUS : "mupen64plus.dll", 0xC56B8, 0x2CB1C0;
 
@@ -146,6 +147,79 @@ state("RMG") {
 
 	ushort controller0ButtonsJP : "mupen64plus.dll", 0xC56B8, 0x339C30; // N64 addr: 0x80339C20 + 0x10 (gControllers[0].buttonDown)
 	ushort controller0ButtonsUS : "mupen64plus.dll", 0xC56B8, 0x33AFA0; // N64 addr: 0x8033AF90 + 0x10 (gControllers[0].buttonDown)
+
+	// RMG 0.8.9: N64 RAM base pointer moved to mupen64plus.dll + 0x39CED50.
+	// The correct set is selected automatically at runtime via vars.useRMGVersion0_8_9RBase.
+	uint debugFunctionJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x2CA6E0;
+	uint debugFunctionUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x2CB1C0;
+
+	uint gameRunTimeJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32C640;
+	uint gameRunTimeUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32D580;
+
+	uint globalTimerJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32C694;
+	uint globalTimerUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32D5D4;
+
+	byte stageIndexJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32CE9A;
+	byte stageIndexUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x32DDFA;
+
+	uint animationJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339E0C;
+	uint animationUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B17C;
+
+	ushort starCountJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339EA8;
+	ushort starCountUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B218;
+
+	ushort hudCameraModeJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x3314FA;
+	ushort hudCameraModeUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33260A;
+
+	float positionXJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339E3C;
+	float positionXUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B1AC;
+
+	float positionYJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339E40;
+	float positionYUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B1B0;
+
+	float positionZJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339E44;
+	float positionZUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B1B4;
+
+	byte warpDestinationJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339EDA;
+	byte warpDestinationUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B24A;
+
+	uint fileAFlagsJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207B08;
+	uint fileAFlagsUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207708;
+
+	uint fileBFlagsJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207B78;
+	uint fileBFlagsUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207778;
+
+	uint fileCFlagsJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207BE8;
+	uint fileCFlagsUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x2077E8;
+
+	uint fileDFlagsJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207C58;
+	uint fileDFlagsUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x207858;
+
+	ushort nonStopInteractionOverwriteJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x24DC1E;
+	ushort nonStopInteractionOverwriteUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x24DDBE;
+
+	byte menuSelectedButtonIDJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x1A7BD3;
+	byte menuSelectedButtonIDUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x1A7D13;
+
+	short menuClickPosJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x1A7BE8;
+	short menuClickPosUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x1A7D28;
+
+	uint behaviorSegmentInfoJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33A0DC;
+	uint behaviorSegmentInfoUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33B44C;
+
+	uint object0TimerJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33C26C;
+	uint object0TimerUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33D5DC;
+
+	uint object0BehaviorJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33C324;
+	uint object0BehaviorUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33D694;
+
+	ushort controller0ButtonsJP_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x339C30;
+	ushort controller0ButtonsUS_RMGVersion0_8_9 : "mupen64plus.dll", 0x39CED50, 0x33AFA0;
+}
+
+init {
+	vars.isRMG = game.ProcessName == "RMG";
+	if (!vars.isRMG) vars.useRMGVersion0_8_9RBase = false;
 }
 
 startup {
@@ -446,6 +520,8 @@ startup {
 
 	// Helper attributes related to LiveSplit.
 	vars.timerModel = new TimerModel { CurrentState = timer };
+	vars.useRMGVersion0_8_9RBase = false;
+	vars.isRMG = false;
 
 	// Working data which can be changed in various places.
 	Func<ExpandoObject> initSplitConfigData = delegate() {
@@ -595,56 +671,70 @@ startup {
 
 	// Helper function used in code to avoid duplication related to ROM version handling.
 	Func<dynamic, dynamic, uint> getGameRuntime = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.gameRunTimeJP_RMGVersion0_8_9 : state.gameRunTimeUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.gameRunTimeJP : state.gameRunTimeUS;
 	};
 
 	Func<dynamic, dynamic, uint> getGlobalTimer = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.globalTimerJP_RMGVersion0_8_9 : state.globalTimerUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.globalTimerJP : state.globalTimerUS;
 	};
 
 	Func<dynamic, dynamic, byte> getStageIndex = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.stageIndexJP_RMGVersion0_8_9 : state.stageIndexUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.stageIndexJP : state.stageIndexUS;
 	};
 
 	Func<dynamic, dynamic, uint> getAnimation = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.animationJP_RMGVersion0_8_9 : state.animationUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.animationJP : state.animationUS;
 	};
 
 	Func<dynamic, dynamic, ushort> getStarCount = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.starCountJP_RMGVersion0_8_9 : state.starCountUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.starCountJP : state.starCountUS;
 	};
 
 	Func<dynamic, dynamic, ushort> getHUDCameraMode = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.hudCameraModeJP_RMGVersion0_8_9 : state.hudCameraModeUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.hudCameraModeJP : state.hudCameraModeUS;
 	};
 
 	Func<dynamic, dynamic, float> getPositionX = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.positionXJP_RMGVersion0_8_9 : state.positionXUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.positionXJP : state.positionXUS;
 	};
 
 	Func<dynamic, dynamic, float> getPositionY = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.positionYJP_RMGVersion0_8_9 : state.positionYUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.positionYJP : state.positionYUS;
 	};
 
 	Func<dynamic, dynamic, float> getPositionZ = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.positionZJP_RMGVersion0_8_9 : state.positionZUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.positionZJP : state.positionZUS;
 	};
 
 	Func<dynamic, dynamic, byte> getWarpDestination = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.warpDestinationJP_RMGVersion0_8_9 : state.warpDestinationUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.warpDestinationJP : state.warpDestinationUS;
 	};
 
 	Func<dynamic, dynamic, ushort> getNonStopInteractionOverwrite = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.nonStopInteractionOverwriteJP_RMGVersion0_8_9 : state.nonStopInteractionOverwriteUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.nonStopInteractionOverwriteJP : state.nonStopInteractionOverwriteUS;
 	};
 
 	Func<dynamic, dynamic, uint> getBehaviorSegmentInfo = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.behaviorSegmentInfoJP_RMGVersion0_8_9 : state.behaviorSegmentInfoUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.behaviorSegmentInfoJP : state.behaviorSegmentInfoUS;
 	};
 
 	Func<dynamic, dynamic, uint> getObject0Behavior = delegate(dynamic varsD, dynamic state) {
 		uint segmentOffset = getBehaviorSegmentInfo(varsD, state);
-		uint virt = varsD.data.runConfig.isJapaneseVersion ? state.object0BehaviorJP : state.object0BehaviorUS;
+		uint virt = vars.useRMGVersion0_8_9RBase
+			? (varsD.data.runConfig.isJapaneseVersion ? state.object0BehaviorJP_RMGVersion0_8_9 : state.object0BehaviorUS_RMGVersion0_8_9)
+			: (varsD.data.runConfig.isJapaneseVersion ? state.object0BehaviorJP : state.object0BehaviorUS);
 		return 0x13000000 + ((virt & 0x1FFFFFFF) - segmentOffset);
 	};
 
@@ -653,35 +743,44 @@ startup {
 	};
 
 	Func<dynamic, dynamic, uint> getObject0Timer = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.object0TimerJP_RMGVersion0_8_9 : state.object0TimerUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.object0TimerJP : state.object0TimerUS;
 	};
 
 	Func<dynamic, dynamic, ushort> getController0Buttons = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.controller0ButtonsJP_RMGVersion0_8_9 : state.controller0ButtonsUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.controller0ButtonsJP : state.controller0ButtonsUS;
 	};
 
 	Func<dynamic, dynamic, uint> getFileFlags = delegate(dynamic varsD, dynamic state) {
 		if (varsD.data.runLiveData.selectedFileID == 0) {
+			if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.fileAFlagsJP_RMGVersion0_8_9 : state.fileAFlagsUS_RMGVersion0_8_9;
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
 		} else if (varsD.data.runLiveData.selectedFileID == 1) {
+			if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.fileBFlagsJP_RMGVersion0_8_9 : state.fileBFlagsUS_RMGVersion0_8_9;
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileBFlagsJP : state.fileBFlagsUS;
 		} else if (varsD.data.runLiveData.selectedFileID == 2) {
+			if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.fileCFlagsJP_RMGVersion0_8_9 : state.fileCFlagsUS_RMGVersion0_8_9;
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileCFlagsJP : state.fileCFlagsUS;
 		} else if (varsD.data.runLiveData.selectedFileID == 3) {
+			if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.fileDFlagsJP_RMGVersion0_8_9 : state.fileDFlagsUS_RMGVersion0_8_9;
 			return varsD.data.runConfig.isJapaneseVersion ? state.fileDFlagsJP : state.fileDFlagsUS;
 		}
 		return 0;
 	};
 
 	Func<dynamic, dynamic, uint> getFileAFlags = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.fileAFlagsJP_RMGVersion0_8_9 : state.fileAFlagsUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.fileAFlagsJP : state.fileAFlagsUS;
 	};
 
 	Func<dynamic, dynamic, byte> getMenuSelectedButtonID = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.menuSelectedButtonIDJP_RMGVersion0_8_9 : state.menuSelectedButtonIDUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.menuSelectedButtonIDJP : state.menuSelectedButtonIDUS;
 	};
 
 	Func<dynamic, dynamic, short> getMenuClickPos = delegate(dynamic varsD, dynamic state) {
+		if (vars.useRMGVersion0_8_9RBase) return varsD.data.runConfig.isJapaneseVersion ? state.menuClickPosJP_RMGVersion0_8_9 : state.menuClickPosUS_RMGVersion0_8_9;
 		return varsD.data.runConfig.isJapaneseVersion ? state.menuClickPosJP : state.menuClickPosUS;
 	};
 
@@ -916,11 +1015,19 @@ startup {
 	// for testing of general behavior.
 	Func<dynamic, dynamic, dynamic, bool> updateRunConditionInner = delegate(dynamic varsD, dynamic oldD, dynamic currentD) {
 		// Game version detection needs to be in update for game switching to work properly (before any current/old use).
+		if (vars.isRMG) {
+			// Detect which RMG base pointer offset is active by checking which set returns the known ROM constant.
+			bool oldBaseHasROM = (currentD.debugFunctionJP == DEBUG_FUNCTION_VALUE || currentD.debugFunctionUS == DEBUG_FUNCTION_VALUE);
+			bool RMGVersion0_8_9HasROM = (currentD.debugFunctionJP_RMGVersion0_8_9 == DEBUG_FUNCTION_VALUE || currentD.debugFunctionUS_RMGVersion0_8_9 == DEBUG_FUNCTION_VALUE);
+			if (oldBaseHasROM && !RMGVersion0_8_9HasROM) vars.useRMGVersion0_8_9RBase = false;
+			else if (!oldBaseHasROM && RMGVersion0_8_9HasROM) vars.useRMGVersion0_8_9RBase = true;
+		}
+
 		varsD.data.runConfig.isJapaneseVersion = (
 			vars.settings.forceJPGameVersion ||
 			(
 				!vars.settings.forceUSGameVersion &&
-				currentD.debugFunctionJP == DEBUG_FUNCTION_VALUE
+				(vars.useRMGVersion0_8_9RBase ? currentD.debugFunctionJP_RMGVersion0_8_9 : currentD.debugFunctionJP) == DEBUG_FUNCTION_VALUE
 			)
 		);
 
@@ -1398,58 +1505,86 @@ startup {
 		uint defaultDebugFunctionValue = 0xf1f1f1f1;
 		state.debugFunctionJP = isJP ? DEBUG_FUNCTION_VALUE : defaultDebugFunctionValue;
 		state.debugFunctionUS = isJP ? defaultDebugFunctionValue : DEBUG_FUNCTION_VALUE;
+		state.debugFunctionJP_RMGVersion0_8_9 = defaultDebugFunctionValue;
+		state.debugFunctionUS_RMGVersion0_8_9 = defaultDebugFunctionValue;
 
 		uint defaultGameRuntime = 0xf2f2f2f2;
 		state.gameRunTimeJP = isJP ? gameRuntime : defaultGameRuntime;
 		state.gameRunTimeUS = isJP ? defaultGameRuntime : gameRuntime;
+		state.gameRunTimeJP_RMGVersion0_8_9 = defaultGameRuntime;
+		state.gameRunTimeUS_RMGVersion0_8_9 = defaultGameRuntime;
 
 		uint defaultGlobalTimer = 0xf3f3f3f3;
 		state.globalTimerJP = isJP ? globalTimer : defaultGlobalTimer;
 		state.globalTimerUS = isJP ? defaultGlobalTimer : globalTimer;
+		state.globalTimerJP_RMGVersion0_8_9 = defaultGlobalTimer;
+		state.globalTimerUS_RMGVersion0_8_9 = defaultGlobalTimer;
 
 		byte defaultStageIndex = 0xf4;
 		state.stageIndexJP = isJP ? stageIndex : defaultStageIndex;
 		state.stageIndexUS = isJP ? defaultStageIndex : stageIndex;
+		state.stageIndexJP_RMGVersion0_8_9 = defaultStageIndex;
+		state.stageIndexUS_RMGVersion0_8_9 = defaultStageIndex;
 
 		uint defaultAnimation = 0xf5f5f5f5;
 		state.animationJP = isJP ? animation : defaultAnimation;
 		state.animationUS = isJP ? defaultAnimation : animation;
+		state.animationJP_RMGVersion0_8_9 = defaultAnimation;
+		state.animationUS_RMGVersion0_8_9 = defaultAnimation;
 
 		ushort defaultStarCount = 0xf6f6;
 		state.starCountJP = isJP ? starCount : defaultStarCount;
 		state.starCountUS = isJP ? defaultStarCount : starCount;
+		state.starCountJP_RMGVersion0_8_9 = defaultStarCount;
+		state.starCountUS_RMGVersion0_8_9 = defaultStarCount;
 
 		ushort defaultNonStopValue = 0xf8f8;
 		state.nonStopInteractionOverwriteJP = /* isJP ? nonStopValue : */ defaultNonStopValue;
 		state.nonStopInteractionOverwriteUS = /* isJP ? */ defaultNonStopValue /* : nonStopValue */;
+		state.nonStopInteractionOverwriteJP_RMGVersion0_8_9 = defaultNonStopValue;
+		state.nonStopInteractionOverwriteUS_RMGVersion0_8_9 = defaultNonStopValue;
 
 		byte defaultMenuSelectedButtonID = 0xf9;
 		state.menuSelectedButtonIDJP = defaultMenuSelectedButtonID;
 		state.menuSelectedButtonIDUS = defaultMenuSelectedButtonID;
+		state.menuSelectedButtonIDJP_RMGVersion0_8_9 = defaultMenuSelectedButtonID;
+		state.menuSelectedButtonIDUS_RMGVersion0_8_9 = defaultMenuSelectedButtonID;
 
 		short defaultMenuClickPos = 0xfa;
 		state.menuClickPosJP = defaultMenuClickPos;
 		state.menuClickPosUS = defaultMenuClickPos;
+		state.menuClickPosJP_RMGVersion0_8_9 = defaultMenuClickPos;
+		state.menuClickPosUS_RMGVersion0_8_9 = defaultMenuClickPos;
 
 		uint defaultFileAMagic = 0x00000000;
 		state.fileAFlagsJP = defaultFileAMagic;
 		state.fileAFlagsUS = defaultFileAMagic;
+		state.fileAFlagsJP_RMGVersion0_8_9 = defaultFileAMagic;
+		state.fileAFlagsUS_RMGVersion0_8_9 = defaultFileAMagic;
 
 		uint defaultObject0Timer = 0;
 		state.object0TimerJP = defaultObject0Timer;
 		state.object0TimerUS = defaultObject0Timer;
+		state.object0TimerJP_RMGVersion0_8_9 = defaultObject0Timer;
+		state.object0TimerUS_RMGVersion0_8_9 = defaultObject0Timer;
 
 		uint defaultObject0Behavior = 0;
 		state.object0BehaviorJP = defaultObject0Behavior;
 		state.object0BehaviorUS = defaultObject0Behavior;
+		state.object0BehaviorJP_RMGVersion0_8_9 = defaultObject0Behavior;
+		state.object0BehaviorUS_RMGVersion0_8_9 = defaultObject0Behavior;
 
 		uint defaultBehaviorSegmentInfo = 0;
 		state.behaviorSegmentInfoJP = defaultBehaviorSegmentInfo;
 		state.behaviorSegmentInfoUS = defaultBehaviorSegmentInfo;
+		state.behaviorSegmentInfoJP_RMGVersion0_8_9 = defaultBehaviorSegmentInfo;
+		state.behaviorSegmentInfoUS_RMGVersion0_8_9 = defaultBehaviorSegmentInfo;
 
 		ushort defaultController0Buttons = 0;
 		state.controller0ButtonsJP = defaultController0Buttons;
 		state.controller0ButtonsUS = defaultController0Buttons;
+		state.controller0ButtonsJP_RMGVersion0_8_9 = defaultController0Buttons;
+		state.controller0ButtonsUS_RMGVersion0_8_9 = defaultController0Buttons;
 
 		return state;
 	};
